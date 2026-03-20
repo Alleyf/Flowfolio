@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AppBar, Avatar, Box, Button, Card, CardContent, Chip, Container, Divider, Grid, Stack, TextField, Typography } from "@mui/material";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { RadarChart } from "echarts/charts";
 import { LegendComponent, RadarComponent, TooltipComponent } from "echarts/components";
 import { init, use as useEcharts } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ArrowUpRight, BookOpenText, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, Download, ExternalLink, Github, Globe, GraduationCap, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare } from "lucide-react";
+import { ArrowUpRight, BookOpenText, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, Download, ExternalLink, Github, Globe, GraduationCap, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare, X } from "lucide-react";
 import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, terminalConfig, topStats } from "./config/siteConfig";
 
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
@@ -252,6 +252,7 @@ export default function App() {
   const [loadedIndexes, setLoadedIndexes] = useState(() => new Set([0, 1]));
   const [flippedProjects, setFlippedProjects] = useState({});
   const [portfolioIndex, setPortfolioIndex] = useState(0);
+  const [showPortfolioPoster, setShowPortfolioPoster] = useState(false);
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
@@ -260,6 +261,11 @@ export default function App() {
 
   useEffect(() => {
     document.title = siteMeta.pageTitle;
+  }, []);
+
+  useEffect(() => {
+    const image = new Image();
+    image.src = siteMeta.portfolioPoster;
   }, []);
 
   useEffect(() => {
@@ -297,6 +303,12 @@ export default function App() {
     window.clearTimeout(unlockTimerRef.current);
     window.clearTimeout(transitionTimerRef.current);
   }, []);
+
+  const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
+
+  useEffect(() => {
+    setShowPortfolioPoster(activeIndex === portfolioSectionIndex);
+  }, [activeIndex, portfolioSectionIndex]);
 
   const preloadAround = (index) => {
     setLoadedIndexes((current) => {
@@ -599,33 +611,32 @@ export default function App() {
                   <Box className={flipped ? "flip-card-inner is-flipped" : "flip-card-inner"}>
                     <Card className={`glass-card project-face project-front ${project.color}`}>
                       <CardContent>
-                        <Typography variant="overline">点击翻转查看亮点</Typography>
+                        <Typography variant="overline">项目介绍 / 我的角色</Typography>
                         <Typography variant="h5" sx={{ mt: 1.5 }}>{project.title}</Typography>
-                        <Typography color="text.secondary" sx={{ mt: 1.5 }}>{project.description}</Typography>
-                        <Chip label={project.status} size="small" sx={{ mt: 2.5 }} />
+                        <Box className="flip-tip-badge">点击卡片翻转查看职责亮点</Box>
+                        <Typography color="text.secondary" sx={{ mt: 1.5 }}>
+                          <HighlightText text={project.description} />
+                        </Typography>
+                        <Box className="project-role-panel">
+                          <Typography className="project-detail-title">我的角色</Typography>
+                          <Typography color="text.secondary" className="project-detail-copy">{project.role}</Typography>
+                        </Box>
+                        <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
+                          <Chip label={project.status} size="small" />
+                          <Chip label={project.role} size="small" variant="outlined" />
+                        </Stack>
                       </CardContent>
                     </Card>
                     <Card className={`glass-card project-face project-back ${project.color}`}>
                       <CardContent>
-                        <Typography variant="overline">项目介绍 / 职责亮点</Typography>
-                        <Box className="project-detail-grid">
-                          <Box className="project-detail-column">
-                            <Typography className="project-detail-title">项目介绍</Typography>
-                            <Typography color="text.secondary" className="project-detail-copy">
-                              <HighlightText text={project.description} />
+                        <Typography variant="overline">职责亮点 / Tech Stack</Typography>
+                        <Stack component="ul" spacing={1.2} className="bullet-list compact">
+                          {project.bullets.map((bullet) => (
+                            <Typography component="li" key={bullet} color="text.secondary">
+                              <HighlightText text={bullet} />
                             </Typography>
-                          </Box>
-                          <Box className="project-detail-column">
-                            <Typography className="project-detail-title">职责亮点</Typography>
-                            <Stack component="ul" spacing={1.2} className="bullet-list compact">
-                              {project.bullets.map((bullet) => (
-                                <Typography component="li" key={bullet} color="text.secondary">
-                                  <HighlightText text={bullet} />
-                                </Typography>
-                              ))}
-                            </Stack>
-                          </Box>
-                        </Box>
+                          ))}
+                        </Stack>
                         <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
                           {project.stack.map((item) => <Chip key={item} label={item} size="small" variant="outlined" />)}
                         </Stack>
@@ -768,21 +779,6 @@ export default function App() {
             </Grid>
           </Grid>
 
-          <Card className="glass-card footer-card">
-            <CardContent>
-              <Grid container spacing={3} alignItems="center">
-                <Grid size={{ xs: 12 }}>
-                  <Typography variant="h5">{siteMeta.footerTitle}</Typography>
-                  <Typography color="text.secondary" sx={{ mt: 1 }}>{siteMeta.footerNote}</Typography>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2.5 }}>
-                    <Button href={`mailto:${contactConfig.email}`} startIcon={<Mail size={16} />}>{contactConfig.email}</Button>
-                    <Button href={contactConfig.github} target="_blank" rel="noreferrer" startIcon={<Github size={16} />}>GitHub</Button>
-                    {contactConfig.phone && <Button startIcon={<Phone size={16} />}>{contactConfig.phone}</Button>}
-                  </Stack>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
         </Stack>
       ),
     },
@@ -823,6 +819,37 @@ export default function App() {
 
       <Box className="page-glow" />
       <HeroScene />
+
+      <AnimatePresence>
+        {unlocked && activeIndex === portfolioSectionIndex && showPortfolioPoster && (
+          <motion.div className="poster-modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPortfolioPoster(false)}>
+            <motion.div
+              className="poster-modal-shell"
+              initial={{ opacity: 0, scale: 0.88, y: 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 24 }}
+              transition={{ duration: 0.42, ease: "easeOut" }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Button className="poster-close" variant="outlined" onClick={() => setShowPortfolioPoster(false)} startIcon={<X size={16} />}>
+                关闭海报
+              </Button>
+              <Card className="glass-card portfolio-poster-card">
+                <img src={siteMeta.portfolioPoster} alt="作品矩阵总览海报" className="portfolio-poster-image" />
+                <CardContent>
+                  <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={1.5}>
+                    <Box>
+                      <Typography variant="h5">作品矩阵总览海报</Typography>
+                      <Typography color="text.secondary">点击空白处或关闭按钮后，进入作品矩阵详细浏览。</Typography>
+                    </Box>
+                    <Button href={siteMeta.portfolioPoster} target="_blank" rel="noreferrer" endIcon={<ExternalLink size={16} />}>查看大图</Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {unlocked && (
         <>

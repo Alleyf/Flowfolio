@@ -40,6 +40,7 @@ export const siteMeta = {
   overviewTitle: "基础简介",
   footerTitle: "CsFan · Flowfolio",
   footerNote: "感谢浏览，欢迎通过邮箱、GitHub 或博客进一步了解我的项目与技术沉淀。",
+  portfolioPoster: "./resume/poster.webp",
 };
 
 export const resumeDownloadPath = "./resume/resume.pdf";
@@ -106,7 +107,7 @@ export const topStats = [
 export const digitalIdentity = {
   name: "CsFan",
   role: "Java 全栈工程师 / AI 应用开发工程师",
-  avatar: "./resume/avatar.jpg",
+  avatar: "./resume/avatar.webp",
   avatarFallback: "F",
   fields: [
     { label: "学校", value: "华中科技大学" },
@@ -162,8 +163,9 @@ export const projectExperiences = [
   {
     title: "北师大教育培训管理服务平台（ETMS）",
     status: "Live",
+    role: "项目负责人 / 后端研发",
     url: "https://jp.liyunol.com",
-    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活1W+，并发1W+。承担项目负责人和后端研发职责。",
+    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活1W+，并发1W+。",
     bullets: [
       "基于 Spring Cloud Alibaba 搭建微服务体系，覆盖学习、培训与管理流程。",
       "围绕高并发场景设计缓存、异步解耦和服务治理能力。",
@@ -175,8 +177,9 @@ export const projectExperiences = [
   {
     title: "中国高校社会科学数据中心（CMIS）",
     status: "Stable",
+    role: "项目负责人 / 运维主管",
     url: "https://cmis.csdcinfo.cn",
-    description: "对实验室的私有云平台与业务中枢事务工作进行统筹安排、分工协作、技术指导和维护管理等工作。承担项目负责人与运维主管职责。",
+    description: "对实验室的私有云平台与业务中枢事务工作进行统筹安排、分工协作、技术指导和维护管理等工作。",
     bullets: [
       "规划、部署并维护 40 节点私有云基础设施与容器平台。",
       "基于 Kubernetes、Rancher 与 Harbor 建立规范化交付链路。",
@@ -188,8 +191,9 @@ export const projectExperiences = [
   {
     title: "湖北省社会科学项目与奖励申报评审系统（HSAS）",
     status: "Maintain",
+    role: "项目负责人 / 后端研发",
     url: "https://hsas.csdcinfo.cn",
-    description: "为湖北省社科联提供社科课题、项目和成果申报、评审、统计分析等服务，支撑湖北全省社科工作者的申报评审工作。承担项目负责人和后端研发职责。",
+    description: "为湖北省社科联提供社科课题、项目和成果申报、评审、统计分析等服务，支撑湖北全省社科工作者的申报评审工作。",
     bullets: [
       "修复多项线上问题并优化高峰场景下的系统承载能力。",
       "对 Struts + Hibernate 历史架构进行治理与渐进式重构。",
@@ -221,7 +225,7 @@ export const portfolioWorks = [
     subtitle: "桌面后台命令管理器",
     kind: "Desktop",
     repo: "https://github.com/Alleyf/CommandHub",
-    image: "./resume/CommandHub.png",
+    image: "./resume/CommandHub.webp",
     summary: "用一个桌面界面统一管理本地常驻命令、进程状态和日志输出。",
     highlights: [
       "提供命令清单、进程巡视、日志尾部查看和运行状态追踪。",
@@ -235,7 +239,7 @@ export const portfolioWorks = [
     subtitle: "摄影设计项目管理平台",
     kind: "Vertical SaaS",
     repo: "https://github.com/Alleyf/pg-design",
-    image: "./resume/PG Design.png",
+    image: "./resume/PG Design.webp",
     summary: "面向摄影师、设计师和创意团队的项目管理系统，强调垂直业务流程。",
     highlights: [
       "覆盖项目状态、预算分类、客户管理、团队协作和任务推进。",
@@ -249,7 +253,7 @@ export const portfolioWorks = [
     subtitle: "在线视频上传、处理与分享平台",
     kind: "Media Tool",
     repo: "https://github.com/Alleyf/VProOnline",
-    image: "./resume/VProOnline.png",
+    image: "./resume/VProOnline.webp",
     summary: "基于 Node.js 的视频处理平台，覆盖上传、压缩、转码、裁剪和下载。",
     highlights: [
       "支持多格式转换、尺寸调整、音频提取和处理结果下载。",
