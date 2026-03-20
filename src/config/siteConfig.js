@@ -187,7 +187,7 @@ export const projectExperiences = [
   {
     title: "中国高校社会科学数据中心（CMIS）",
     status: "Stable",
-    role: "项目负责人 / 运维主管",
+    role: "项目主管 / 运维负责人",
     url: "https://cmis.csdcinfo.cn",
     external: false,
     description: "对实验室的私有云平台与业务中枢事务工作进行统筹安排、分工协作、技术指导和维护管理等工作。",

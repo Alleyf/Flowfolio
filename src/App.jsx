@@ -242,6 +242,14 @@ function HighlightText({ text }) {
   ));
 }
 
+function getProjectStatusClass(status) {
+  const normalized = status.toLowerCase();
+  if (normalized === "live") return "project-status-chip live";
+  if (normalized === "stable") return "project-status-chip stable";
+  if (normalized === "maintain") return "project-status-chip maintain";
+  return "project-status-chip";
+}
+
 export default function App() {
   const [terminalText, setTerminalText] = useState("");
   const [command, setCommand] = useState("");
@@ -696,7 +704,7 @@ export default function App() {
                           <Typography color="text.secondary" className="project-detail-copy">{project.role}</Typography>
                         </Box>
                         <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
-                          <Chip label={project.status} size="small" />
+                          <Chip label={project.status} size="small" className={getProjectStatusClass(project.status)} />
                           <Chip label={project.role} size="small" variant="outlined" />
                         </Stack>
                       </CardContent>

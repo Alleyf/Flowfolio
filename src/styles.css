@@ -463,6 +463,30 @@ button {
   line-height: 1.9;
 }
 
+.project-status-chip {
+  font-weight: 800 !important;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent !important;
+}
+
+.project-status-chip.live {
+  color: #dcfff5 !important;
+  background: rgba(72, 214, 167, 0.18) !important;
+  border-color: rgba(72, 214, 167, 0.34) !important;
+}
+
+.project-status-chip.stable {
+  color: #e1f1ff !important;
+  background: rgba(86, 161, 255, 0.18) !important;
+  border-color: rgba(86, 161, 255, 0.34) !important;
+}
+
+.project-status-chip.maintain {
+  color: #fff0d4 !important;
+  background: rgba(255, 184, 101, 0.18) !important;
+  border-color: rgba(255, 184, 101, 0.34) !important;
+}
+
 .bullet-list {
   margin: 18px 0 0;
   padding-left: 18px;
