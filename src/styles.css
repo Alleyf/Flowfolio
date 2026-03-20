@@ -501,6 +501,18 @@ button {
   opacity: 0.92;
 }
 
+.site-copyright {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 12px;
+  text-align: center;
+}
+
+.site-copyright .MuiTypography-root {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .stat-box,
 .footer-stat {
   min-height: 108px;
@@ -512,13 +524,68 @@ button {
   align-items: flex-start;
 }
 
-.next-slide-button {
-  position: fixed !important;
+.floating-toolbox {
+  position: fixed;
   right: 28px;
   bottom: 24px;
   z-index: 20;
-  border-color: rgba(110, 242, 255, 0.22) !important;
-  background: rgba(7, 16, 25, 0.72) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.floating-toolbox-panel {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 12px;
+  border-radius: 24px;
+  background: rgba(7, 16, 25, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+}
+
+.toolbox-trigger {
+  min-width: 0 !important;
+  width: 56px;
+  height: 56px;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32) !important;
+}
+
+.toolbox-action {
+  min-width: 0 !important;
+  width: 48px;
+  height: 48px;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  border-color: rgba(110, 242, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-radius: 16px !important;
+}
+
+.toolbox-action:hover,
+.toolbox-trigger:hover {
+  transform: translateY(-2px);
+}
+
+.toolbox-action .lucide,
+.toolbox-trigger .lucide {
+  stroke-width: 2.15;
+}
+
+.toolbox-action.active-like {
+  color: #ff8d9d !important;
+  border-color: rgba(255, 141, 157, 0.35) !important;
+}
+
+.toolbox-action.active-bookmark {
+  color: var(--gold) !important;
+  border-color: rgba(255, 184, 101, 0.35) !important;
 }
 
 .terminal-overlay {
@@ -656,6 +723,21 @@ button {
   .slide-shell {
     padding-top: calc(var(--nav-height) + 72px);
     padding-bottom: 74px;
+  }
+
+  .floating-toolbox {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .toolbox-trigger {
+    width: 52px;
+    height: 52px;
+  }
+
+  .toolbox-action {
+    width: 44px;
+    height: 44px;
   }
 
   .terminal-body {

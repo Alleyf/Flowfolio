@@ -5,7 +5,7 @@ import { RadarChart } from "echarts/charts";
 import { LegendComponent, RadarComponent, TooltipComponent } from "echarts/components";
 import { init, use as useEcharts } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ArrowUpRight, BookOpenText, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, Download, ExternalLink, Github, Globe, GraduationCap, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare, X } from "lucide-react";
+import { ArrowUpRight, BookOpenText, BookMarked, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare, Wrench, X } from "lucide-react";
 import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, terminalConfig, topStats } from "./config/siteConfig";
 
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
@@ -253,6 +253,9 @@ export default function App() {
   const [flippedProjects, setFlippedProjects] = useState({});
   const [portfolioIndex, setPortfolioIndex] = useState(0);
   const [showPortfolioPoster, setShowPortfolioPoster] = useState(false);
+  const [toolboxOpen, setToolboxOpen] = useState(false);
+  const [liked, setLiked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-liked") === "true" : false));
+  const [bookmarked, setBookmarked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-bookmarked") === "true" : false));
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
@@ -262,6 +265,14 @@ export default function App() {
   useEffect(() => {
     document.title = siteMeta.pageTitle;
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("flowfolio-liked", String(liked));
+  }, [liked]);
+
+  useEffect(() => {
+    window.localStorage.setItem("flowfolio-bookmarked", String(bookmarked));
+  }, [bookmarked]);
 
   useEffect(() => {
     const image = new Image();
@@ -277,7 +288,7 @@ export default function App() {
       if (line >= bootLines.length) return;
       const current = bootLines[line];
       if (char < current.length) {
-        setTerminalText((prev) => `${prev}${current[char]}`);
+        setTerminalText((prev) => `${prev}${current.charAt(char)}`);
         char += 1;
         timer = window.setTimeout(type, 15);
         return;
@@ -325,6 +336,7 @@ export default function App() {
     if (nextIndex < 0 || nextIndex >= sectionMenus.length || nextIndex === activeIndex) return;
 
     preloadAround(nextIndex);
+    setToolboxOpen(false);
     setIsTransitioning(true);
     setActiveIndex(nextIndex);
     transitionTimerRef.current = window.setTimeout(() => setIsTransitioning(false), SLIDE_TRANSITION_MS);
@@ -466,6 +478,16 @@ export default function App() {
     const subject = encodeURIComponent(form.subject || contactConfig.defaultSubject);
     const body = encodeURIComponent(`姓名：${form.name || "未填写"}\n访客邮箱：${form.email || "未填写"}\n\n${form.message || ""}`);
     window.location.href = `mailto:${contactConfig.inboxEmail}?subject=${subject}&body=${body}`;
+  };
+
+  const handleBookmark = async () => {
+    const currentSection = sectionMenus[activeIndex];
+    const url = `${window.location.origin}${window.location.pathname}#${currentSection.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {}
+    setBookmarked((current) => !current);
+    setToolboxOpen(false);
   };
 
   const sectionNodes = [
@@ -778,7 +800,11 @@ export default function App() {
               </Card>
             </Grid>
           </Grid>
-
+          <Box className="site-copyright">
+            <Typography variant="caption" color="text.secondary">
+              © {siteMeta.copyrightRange} {siteMeta.copyrightOwner}. All rights reserved.
+            </Typography>
+          </Box>
         </Stack>
       ),
     },
@@ -888,9 +914,29 @@ export default function App() {
             </Box>
           </Box>
 
-          <Button className="next-slide-button" variant="outlined" onClick={() => navigateTo(Math.min(activeIndex + 1, sectionMenus.length - 1))} endIcon={<ChevronDown size={18} />}>
-            下一页
-          </Button>
+          <Box className={toolboxOpen ? "floating-toolbox open" : "floating-toolbox"}>
+            <AnimatePresence>
+              {toolboxOpen && (
+                <motion.div className="floating-toolbox-panel" initial={{ opacity: 0, y: 14, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.94 }} transition={{ duration: 0.2 }}>
+                  <Button className="toolbox-action" variant="outlined" onClick={() => navigateTo(0)} aria-label="回到顶部" title="回到顶部">
+                    <ChevronUp size={18} />
+                  </Button>
+                  <Button className="toolbox-action" variant="outlined" onClick={() => navigateTo(Math.min(activeIndex + 1, sectionMenus.length - 1))} aria-label="下一页" title="下一页">
+                    <ChevronDown size={18} />
+                  </Button>
+                  <Button className={liked ? "toolbox-action active-like" : "toolbox-action"} variant="outlined" onClick={() => setLiked((current) => !current)} aria-label={liked ? "取消点赞" : "点赞"} title={liked ? "取消点赞" : "点赞"}>
+                    <Heart size={18} fill={liked ? "currentColor" : "none"} />
+                  </Button>
+                  <Button className={bookmarked ? "toolbox-action active-bookmark" : "toolbox-action"} variant="outlined" onClick={handleBookmark} aria-label={bookmarked ? "取消收藏" : "收藏为书签"} title={bookmarked ? "取消收藏" : "收藏为书签"}>
+                    <BookMarked size={18} />
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <Button className="toolbox-trigger" variant="contained" onClick={() => setToolboxOpen((current) => !current)} aria-label={toolboxOpen ? "收起工具箱" : "打开工具箱"} title={toolboxOpen ? "收起工具箱" : "打开工具箱"}>
+              <Wrench size={18} />
+            </Button>
+          </Box>
         </>
       )}
     </Box>

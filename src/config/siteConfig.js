@@ -38,6 +38,8 @@ export const siteMeta = {
   description: "CsFan的作品化简历网站，聚焦 Java 全栈、微服务、云原生与 AI 工程化。",
   overviewEyebrow: "Flowfolio / Resume OS",
   overviewTitle: "基础简介",
+  copyrightRange: "2025-2026",
+  copyrightOwner: "CsFan",
   footerTitle: "CsFan · Flowfolio",
   footerNote: "感谢浏览，欢迎通过邮箱、GitHub 或博客进一步了解我的项目与技术沉淀。",
   portfolioPoster: "./resume/poster.webp",
@@ -54,7 +56,7 @@ export const terminalConfig = {
     {
       name: "start",
       description: "进入简历分页视图",
-      output: ["[exec] Opening Flowfolio...", "[exec] Mounting section stream..."],
+      output: ["[执行] 正在打开 Flowfolio...", "[执行] 正在挂载分页内容流..."],
       action: "unlock",
     },
     {
@@ -81,11 +83,11 @@ export const terminalConfig = {
 };
 
 export const bootLines = [
-  "[boot] Loading Flowfolio manifest...",
-  "[boot] Linking portfolio covers and digital identity assets...",
-  "[boot] Enabling page-by-page interaction pipeline...",
-  "[boot] Hydrating profile: CsFan / Java Full Stack Engineer",
-  "[boot] Resume portal ready. Auto-entering overview page...",
+  "[启动] 正在加载 Flowfolio 配置清单...",
+  "[启动] 正在连接作品封面与数字身份资源...",
+  "[启动] 正在启用分页交互与动态切换管线...",
+  "[启动] 正在载入候选人档案：CsFan / Java 全栈工程师",
+  "[启动] 简历入口已就绪，即将自动进入首页...",
 ];
 
 export const sectionMenus = [
@@ -304,7 +306,7 @@ export const contactConfig = {
   inboxEmail: "alleyf@qq.com",
   github: "https://github.com/Alleyf",
   blog: "https://alleyf.github.io/",
-  phone: "13669156253",
+  phone: "19223276194",
   location: "中国 · 武汉",
   status: "找实习ing",
   defaultSubject: "来自个人网站的联系",
