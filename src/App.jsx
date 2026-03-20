@@ -280,6 +280,24 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!unlocked || typeof window === "undefined" || typeof window.gtag !== "function") return;
+
+    const currentSection = sectionMenus[activeIndex];
+    const pagePath = `/${currentSection.id}`;
+    const pageLocation = `${window.location.origin}${window.location.pathname}#${currentSection.id}`;
+
+    if (window.history?.replaceState) {
+      window.history.replaceState(null, "", `#${currentSection.id}`);
+    }
+
+    window.gtag("event", "page_view", {
+      page_title: `${siteMeta.projectName} - ${currentSection.label}`,
+      page_path: pagePath,
+      page_location: pageLocation,
+    });
+  }, [activeIndex, unlocked]);
+
+  useEffect(() => {
     let line = 0;
     let char = 0;
     let timer;
@@ -803,6 +821,12 @@ export default function App() {
           <Box className="site-copyright">
             <Typography variant="caption" color="text.secondary">
               © {siteMeta.copyrightRange} {siteMeta.copyrightOwner}. All rights reserved.
+              <Box component="span" id="busuanzi_container_site_pv" className="site-counter">
+                {" · "}PV <Box component="span" id="busuanzi_value_site_pv" />
+              </Box>
+              <Box component="span" id="busuanzi_container_site_uv" className="site-counter">
+                {" · "}UV <Box component="span" id="busuanzi_value_site_uv" />
+              </Box>
             </Typography>
           </Box>
         </Stack>

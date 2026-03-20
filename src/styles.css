@@ -513,6 +513,10 @@ button {
   text-transform: uppercase;
 }
 
+.site-counter {
+  display: inline;
+}
+
 .stat-box,
 .footer-stat {
   min-height: 108px;
