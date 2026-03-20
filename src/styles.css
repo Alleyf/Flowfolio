@@ -95,7 +95,6 @@ button {
   letter-spacing: 0.12em;
 }
 
-.brand span,
 .hero-subtitle,
 .period-label {
   color: var(--cyan);
@@ -278,6 +277,8 @@ button {
 
 .education-card {
   position: relative;
+  display: block;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
 .education-card::after {
@@ -288,6 +289,45 @@ button {
   width: 12px;
   height: 2px;
   background: rgba(110, 242, 255, 0.4);
+}
+
+.education-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(110, 242, 255, 0.22);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+}
+
+.education-logo-shell {
+  flex: 0 0 auto;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(110, 242, 255, 0.14);
+  padding: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.education-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.education-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(110, 242, 255, 0.2), rgba(255, 184, 101, 0.18));
+  border: 1px solid rgba(110, 242, 255, 0.2);
+  color: #f3fbff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .icon-badge {
@@ -347,6 +387,10 @@ button {
   cursor: pointer;
 }
 
+.project-card-wrap {
+  height: 100%;
+}
+
 .flip-card-inner {
   position: relative;
   min-height: 410px;
@@ -366,6 +410,10 @@ button {
 
 .project-back {
   transform: rotateY(180deg);
+}
+
+.project-card-wrap:hover .project-face {
+  border-color: rgba(110, 242, 255, 0.2);
 }
 
 .project-front.cyan,
@@ -427,6 +475,57 @@ button {
 .keyword-highlight {
   color: var(--cyan);
   font-weight: 700;
+}
+
+.skill-card-wrap {
+  height: 100%;
+  perspective: 1400px;
+}
+
+.skill-card {
+  height: 100%;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.skill-card::after {
+  content: "";
+  position: absolute;
+  inset: -30% auto auto -25%;
+  width: 72%;
+  height: 180%;
+  transform: rotate(18deg) translateX(-120%);
+  background: linear-gradient(180deg, transparent, rgba(110, 242, 255, 0.22), transparent);
+  opacity: 0;
+  transition: transform 0.6s ease, opacity 0.32s ease;
+}
+
+.skill-card::before {
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.08), transparent 28%, transparent 76%, rgba(110, 242, 255, 0.06)),
+    radial-gradient(circle at 90% 16%, rgba(110, 242, 255, 0.16), transparent 22%),
+    radial-gradient(circle at 12% 100%, rgba(255, 184, 101, 0.12), transparent 26%);
+}
+
+.skill-card-wrap:hover .skill-card {
+  border-color: rgba(110, 242, 255, 0.22);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
+}
+
+.skill-card-wrap:hover .skill-card::after {
+  opacity: 1;
+  transform: rotate(18deg) translateX(220%);
+}
+
+.skill-card .MuiChip-root {
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.skill-card-wrap:hover .MuiChip-root {
+  transform: translateY(-2px);
+  border-color: rgba(110, 242, 255, 0.24);
+  background: rgba(110, 242, 255, 0.08);
 }
 
 .portfolio-card {
@@ -495,6 +594,26 @@ button {
 .portfolio-chip.active {
   background: rgba(110, 242, 255, 0.14) !important;
   border-color: rgba(110, 242, 255, 0.34) !important;
+}
+
+.tweet-card-wrap {
+  height: 100%;
+}
+
+.tweet-card {
+  height: 100%;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.tweet-card::before {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 24%, transparent 76%, rgba(110, 242, 255, 0.05)),
+    radial-gradient(circle at 100% 0%, rgba(110, 242, 255, 0.1), transparent 24%);
+}
+
+.tweet-card-wrap:hover .tweet-card {
+  border-color: rgba(110, 242, 255, 0.2);
+  box-shadow: 0 28px 86px rgba(0, 0, 0, 0.34);
 }
 
 .contact-link:hover {
@@ -722,6 +841,13 @@ button {
 
   .education-card::after {
     display: none;
+  }
+
+  .education-logo-shell {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    padding: 8px;
   }
 
   .slide-shell {

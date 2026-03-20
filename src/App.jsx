@@ -334,6 +334,9 @@ export default function App() {
   }, []);
 
   const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
+  const skillsSectionIndex = sectionMenus.findIndex((item) => item.id === "skills");
+  const projectsSectionIndex = sectionMenus.findIndex((item) => item.id === "projects");
+  const blogSectionIndex = sectionMenus.findIndex((item) => item.id === "blog");
 
   useEffect(() => {
     setShowPortfolioPoster(activeIndex === portfolioSectionIndex);
@@ -587,9 +590,25 @@ export default function App() {
                 <Box className="education-dot" />
                 <Box className="education-line" />
               </Box>
-              <Card className="glass-card timeline-card education-card">
+              <Card
+                className="glass-card timeline-card education-card"
+                component="a"
+                href={item.schoolUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <CardContent>
-                  <Typography variant="h5">{item.title}</Typography>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box className="education-logo-shell">
+                      <img src={item.logo} alt={`${item.school} logo`} className="education-logo" loading="lazy" />
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="h5">{item.title}</Typography>
+                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 1 }}>
+                        {item.tiers?.map((tier) => <Box key={tier} component="span" className="education-tier-badge">{tier}</Box>)}
+                      </Stack>
+                    </Box>
+                  </Stack>
                   <Typography color="text.secondary" sx={{ mt: 1.5 }}>{item.body}</Typography>
                   <Stack component="ul" spacing={1.1} className="bullet-list compact">
                     {item.details?.map((detail) => <Typography component="li" key={detail} color="text.secondary">{detail}</Typography>)}
@@ -618,17 +637,25 @@ export default function App() {
           </Grid>
           <Grid size={{ xs: 12, md: 7 }}>
             <Grid container spacing={2}>
-              {personalSkills.map((item) => (
+              {personalSkills.map((item, index) => (
                 <Grid key={item.title} size={{ xs: 12, sm: 6 }}>
-                  <Card className="glass-card skill-card">
-                    <CardContent>
-                      <Typography variant="h6">{item.title}</Typography>
-                      <Typography color="text.secondary" sx={{ mt: 1 }}>{item.body}</Typography>
-                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
-                        {item.tags.map((tag) => <Chip key={tag} label={tag} size="small" />)}
-                      </Stack>
-                    </CardContent>
-                  </Card>
+                  <motion.div
+                    className="skill-card-wrap"
+                    initial={false}
+                    animate={activeIndex === skillsSectionIndex ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0.74, y: 26, scale: 0.97 }}
+                    transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
+                    whileHover={{ y: -10, rotateX: -4, rotateY: index % 2 === 0 ? 3 : -3 }}
+                  >
+                    <Card className="glass-card skill-card">
+                      <CardContent>
+                        <Typography variant="h6">{item.title}</Typography>
+                        <Typography color="text.secondary" sx={{ mt: 1 }}>{item.body}</Typography>
+                        <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
+                          {item.tags.map((tag) => <Chip key={tag} label={tag} size="small" />)}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 </Grid>
               ))}
             </Grid>
@@ -643,10 +670,17 @@ export default function App() {
       icon: <BriefcaseBusiness size={18} />,
       render: () => (
         <Grid container spacing={2.5}>
-          {projectExperiences.map((project) => {
+          {projectExperiences.map((project, index) => {
             const flipped = !!flippedProjects[project.title];
             return (
               <Grid key={project.title} size={{ xs: 12, md: 4 }}>
+                <motion.div
+                  className="project-card-wrap"
+                  initial={false}
+                  animate={activeIndex === projectsSectionIndex ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0.76, y: 28, scale: 0.97 }}
+                  transition={{ duration: 0.52, delay: index * 0.08, ease: "easeOut" }}
+                  whileHover={{ y: -10 }}
+                >
                 <Box className="flip-card" onClick={() => setFlippedProjects((current) => ({ ...current, [project.title]: !current[project.title] }))}>
                   <Box className={flipped ? "flip-card-inner is-flipped" : "flip-card-inner"}>
                     <Card className={`glass-card project-face project-front ${project.color}`}>
@@ -680,11 +714,14 @@ export default function App() {
                         <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
                           {project.stack.map((item) => <Chip key={item} label={item} size="small" variant="outlined" />)}
                         </Stack>
-                        <Button href={project.url} target="_blank" rel="noreferrer" endIcon={<ArrowUpRight size={16} />} sx={{ mt: 2.5 }} onClick={(event) => event.stopPropagation()}>访问项目</Button>
+                        {project.external !== false && project.url ? (
+                          <Button href={project.url} target="_blank" rel="noreferrer" endIcon={<ArrowUpRight size={16} />} sx={{ mt: 2.5 }} onClick={(event) => event.stopPropagation()}>访问项目</Button>
+                        ) : null}
                       </CardContent>
                     </Card>
                   </Box>
                 </Box>
+                </motion.div>
               </Grid>
             );
           })}
@@ -754,27 +791,35 @@ export default function App() {
       icon: <BookOpenText size={18} />,
       render: () => (
         <Grid container spacing={2.5}>
-          {blogPosts.map((post) => (
+          {blogPosts.map((post, index) => (
             <Grid key={post.title} size={{ xs: 12, md: 6 }}>
-              <Card className="glass-card tweet-card">
-                <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Avatar src={digitalIdentity.avatar || undefined} className="tweet-avatar">{digitalIdentity.avatarFallback}</Avatar>
-                      <Box>
-                        <Typography variant="body1">CsFan</Typography>
-                        <Typography variant="caption" color="text.secondary">@{post.handle}</Typography>
-                      </Box>
+              <motion.div
+                className="tweet-card-wrap"
+                initial={false}
+                animate={activeIndex === blogSectionIndex ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0.76, y: 28, scale: 0.975 }}
+                transition={{ duration: 0.48, delay: index * 0.08, ease: "easeOut" }}
+                whileHover={{ y: -8 }}
+              >
+                <Card className="glass-card tweet-card">
+                  <CardContent>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Avatar src={digitalIdentity.avatar || undefined} className="tweet-avatar">{digitalIdentity.avatarFallback}</Avatar>
+                        <Box>
+                          <Typography variant="body1">CsFan</Typography>
+                          <Typography variant="caption" color="text.secondary">@{post.handle}</Typography>
+                        </Box>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">{post.date}</Typography>
                     </Stack>
-                    <Typography variant="caption" color="text.secondary">{post.date}</Typography>
-                  </Stack>
-                  <Typography sx={{ mt: 2, lineHeight: 1.9 }}>{post.description}</Typography>
-                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
-                    {post.tags.map((tag) => <Chip key={tag} label={`#${tag}`} size="small" variant="outlined" />)}
-                  </Stack>
-                  <Button href={post.url} target="_blank" sx={{ mt: 2 }} rel="noreferrer" endIcon={<ExternalLink size={16} />}>阅读原文</Button>
-                </CardContent>
-              </Card>
+                    <Typography sx={{ mt: 2, lineHeight: 1.9 }}>{post.description}</Typography>
+                    <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
+                      {post.tags.map((tag) => <Chip key={tag} label={`#${tag}`} size="small" variant="outlined" />)}
+                    </Stack>
+                    <Button href={post.url} target="_blank" sx={{ mt: 2 }} rel="noreferrer" endIcon={<ExternalLink size={16} />}>阅读原文</Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </Grid>
           ))}
         </Grid>
@@ -853,7 +898,7 @@ export default function App() {
       <AppBar position="fixed" color="transparent" elevation={0} className="site-nav">
         <Box className="toolbar">
           <Box>
-            <Typography variant="h6" className="brand">{siteMeta.brand}<span>{siteMeta.brandAccent}</span></Typography>
+            <Typography variant="h6" className="brand">{siteMeta.brand}</Typography>
             <Typography variant="caption" color="text.secondary">Flow-driven portfolio resume</Typography>
           </Box>
           <Stack direction="row" spacing={1} className="nav-actions">

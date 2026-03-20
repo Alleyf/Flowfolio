@@ -32,8 +32,8 @@ const createCoverPlaceholder = (title, subtitle) => `data:image/svg+xml;utf8,${e
 
 export const siteMeta = {
   projectName: "Flowfolio",
-  brand: "FLOWFOLIO",
-  brandAccent: "resume OS",
+  brand: "FLOWFOLIO | Resume OS",
+  brandAccent: "Resume OS",
   pageTitle: "CsFan | Flowfolio",
   description: "CsFan的作品化简历网站，聚焦 Java 全栈、微服务、云原生与 AI 工程化。",
   overviewEyebrow: "Flowfolio / Resume OS",
@@ -125,6 +125,10 @@ export const educationList = [
   {
     period: "2024.09 - 2027.06",
     title: "华中科技大学 · 信息与通信工程-硕士",
+    school: "华中科技大学",
+    schoolUrl: "https://www.hust.edu.cn/",
+    logo: "./resume/hust_logo.svg",
+    tiers: ["985", "211", "双一流"],
     body: "推荐免试研究生，持续把通信工程背景和软件工程实践结合，重点关注工程系统设计、平台能力建设与 AI 工具落地。",
     chips: ["中国研究生创“芯”大赛 · EDA 精英挑战赛全国三等奖", "研究生一等学业奖学金"],
     details: ["推荐免试录取，研究方向聚焦工程化能力与系统实现。", "在校期间持续参与竞赛与项目实践，保持技术研究与工程落地并进。"],
@@ -132,6 +136,10 @@ export const educationList = [
   {
     period: "2020.09 - 2024.06",
     title: "武汉理工大学 · 通信工程-本科",
+    school: "武汉理工大学",
+    schoolUrl: "https://www.whut.edu.cn/",
+    logo: "./resume/whut_logo.svg",
+    tiers: ["211", "双一流"],
     body: "专业前 15%，获得保研资格。本科阶段在课程学习、竞赛获奖、项目实践和综合素质评定上持续保持稳定输出。",
     chips: ["计算机设计大赛全国二等奖", "服务外包大赛全国三等奖", "华为社会奖学金", "三好学生标兵", "优秀毕业生"],
     details: ["获得科研、竞赛和奖学金等多项荣誉。", "兼顾专业课程、比赛和项目开发，形成了较强的自驱学习与工程实践能力。"],
@@ -181,6 +189,7 @@ export const projectExperiences = [
     status: "Stable",
     role: "项目负责人 / 运维主管",
     url: "https://cmis.csdcinfo.cn",
+    external: false,
     description: "对实验室的私有云平台与业务中枢事务工作进行统筹安排、分工协作、技术指导和维护管理等工作。",
     bullets: [
       "规划、部署并维护 40 节点私有云基础设施与容器平台。",
