@@ -1,11 +1,90 @@
-export const resumeDownloadPath = "./resume/20260318_Java开发工程师_范财胜_硕士.pdf";
+const createCoverPlaceholder = (title, subtitle) => `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+    <defs>
+      <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+        <stop offset="0%" stop-color="#0b1522" />
+        <stop offset="55%" stop-color="#10283a" />
+        <stop offset="100%" stop-color="#071019" />
+      </linearGradient>
+      <linearGradient id="glow" x1="0%" x2="100%" y1="0%" y2="0%">
+        <stop offset="0%" stop-color="#6ef2ff" stop-opacity="0.95" />
+        <stop offset="100%" stop-color="#ffb865" stop-opacity="0.95" />
+      </linearGradient>
+    </defs>
+    <rect width="1600" height="900" fill="url(#bg)" />
+    <circle cx="1290" cy="180" r="240" fill="#6ef2ff" fill-opacity="0.10" />
+    <circle cx="280" cy="760" r="280" fill="#ffb865" fill-opacity="0.10" />
+    <rect x="110" y="110" width="1380" height="680" rx="42" fill="#0d1b2a" fill-opacity="0.9" stroke="url(#glow)" stroke-opacity="0.45" />
+    <rect x="170" y="180" width="420" height="540" rx="28" fill="#101f31" stroke="#6ef2ff" stroke-opacity="0.22" />
+    <rect x="640" y="210" width="760" height="110" rx="22" fill="#0e1a29" stroke="#6ef2ff" stroke-opacity="0.2" />
+    <rect x="640" y="360" width="760" height="180" rx="28" fill="#0e1a29" stroke="#ffffff" stroke-opacity="0.1" />
+    <rect x="640" y="580" width="210" height="92" rx="22" fill="#6ef2ff" fill-opacity="0.85" />
+    <rect x="890" y="580" width="210" height="92" rx="22" fill="#101f31" stroke="#ffffff" stroke-opacity="0.16" />
+    <rect x="1140" y="580" width="210" height="92" rx="22" fill="#101f31" stroke="#ffffff" stroke-opacity="0.16" />
+    <text x="210" y="310" fill="#ffcf70" font-family="Arial, sans-serif" font-size="38" font-weight="700">Terminal Runtime</text>
+    <text x="210" y="390" fill="#ffffff" font-family="Arial, sans-serif" font-size="72" font-weight="800">${title}</text>
+    <text x="210" y="458" fill="#a9c3d8" font-family="Arial, sans-serif" font-size="30">${subtitle}</text>
+    <text x="678" y="280" fill="#8fa8be" font-family="Arial, sans-serif" font-size="28">搜索命令、参数、工作目录或分组</text>
+    <text x="678" y="440" fill="#ffffff" font-family="Courier New, monospace" font-size="44">docker run -d -p 6379:6379 redis:alpine</text>
+    <text x="678" y="504" fill="#ffb865" font-family="Arial, sans-serif" font-size="28">桌面端命令编排与进程控制台</text>
+  </svg>
+`)}`;
+
+export const siteMeta = {
+  projectName: "Flowfolio",
+  brand: "FLOWFOLIO",
+  brandAccent: "resume OS",
+  pageTitle: "CsFan | Flowfolio",
+  description: "CsFan的作品化简历网站，聚焦 Java 全栈、微服务、云原生与 AI 工程化。",
+  overviewEyebrow: "Flowfolio / Resume OS",
+  overviewTitle: "基础简介",
+  footerTitle: "CsFan · Flowfolio",
+  footerNote: "感谢浏览，欢迎通过邮箱、GitHub 或博客进一步了解我的项目与技术沉淀。",
+};
+
+export const resumeDownloadPath = "./resume/resume.pdf";
+
+export const terminalConfig = {
+  prompt: "visitor@recruiter:~$",
+  title: "fan@flowfolio:~/resume",
+  placeholder: "系统自动进入简历首页",
+  hint: "系统启动完成后将自动进入简历首页。",
+  commands: [
+    {
+      name: "start",
+      description: "进入简历分页视图",
+      output: ["[exec] Opening Flowfolio...", "[exec] Mounting section stream..."],
+      action: "unlock",
+    },
+    {
+      name: "help",
+      description: "查看可用命令",
+      output: ["start -> 进入简历", "help -> 查看命令", "whoami -> 查看候选人信息", "contact -> 输出联系方式", "clear -> 清屏"],
+    },
+    {
+      name: "whoami",
+      description: "查看候选人信息",
+      output: ["CsFan / Java 全栈工程师 / 微服务与云原生实践者 / HUST 硕士在读"],
+    },
+    {
+      name: "contact",
+      description: "输出联系方式",
+      output: ["mail: alleyf@qq.com", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
+    },
+    {
+      name: "clear",
+      description: "清空终端",
+      action: "clear",
+    },
+  ],
+};
 
 export const bootLines = [
-  "[boot] Loading candidate manifest...",
-  "[boot] Loading resume attachment bundle...",
-  "[boot] Splitting site into themed experience pages...",
-  "[boot] Hydrating profile: 范财胜 / Java Full Stack Engineer",
-  "[boot] Type 'start' to enter the resume portal.",
+  "[boot] Loading Flowfolio manifest...",
+  "[boot] Linking portfolio covers and digital identity assets...",
+  "[boot] Enabling page-by-page interaction pipeline...",
+  "[boot] Hydrating profile: CsFan / Java Full Stack Engineer",
+  "[boot] Resume portal ready. Auto-entering overview page...",
 ];
 
 export const sectionMenus = [
@@ -13,42 +92,46 @@ export const sectionMenus = [
   { id: "education", label: "教育背景" },
   { id: "skills", label: "个人技能" },
   { id: "projects", label: "项目经历" },
-  { id: "portfolio", label: "作品集" },
+  { id: "portfolio", label: "作品矩阵" },
   { id: "blog", label: "博客推文" },
   { id: "contact", label: "联系信息" },
 ];
 
 export const topStats = [
-  { label: "主栈", value: "Java / Spring / 微服务" },
-  { label: "工程化", value: "Kubernetes / CI/CD / 稳定性治理" },
-  { label: "方向", value: "AI Agent / 平台基础设施" },
+  { label: "主栈", value: "Java / Spring / AI" },
+  { label: "工程化", value: "DevOps / Kubernetes" },
+  { label: "方向", value: "AI Agent / AI Infra" },
 ];
 
 export const digitalIdentity = {
-  name: "范财胜",
-  role: "Java 全栈工程师 / 平台与基础架构方向",
+  name: "CsFan",
+  role: "Java 全栈工程师 / AI 应用开发工程师",
+  avatar: "./resume/avatar.jpg",
+  avatarFallback: "F",
   fields: [
     { label: "学校", value: "华中科技大学" },
-    { label: "学历", value: "硕士在读 · 2027 届" },
+    { label: "学历", value: "硕士" },
     { label: "专业", value: "信息与通信工程" },
     { label: "邮箱", value: "alleyf@qq.com" },
     { label: "博客", value: "alleyf.github.io" },
-    { label: "状态", value: "开放展示 / 持续迭代中" },
+    { label: "状态", value: "找实习ing" },
   ],
 };
 
 export const educationList = [
   {
     period: "2024.09 - 2027.06",
-    title: "华中科技大学 · 信息与通信工程硕士",
-    body: "推荐免试研究生，持续在工程实践和 AI 方向之间寻找更高效的落地路径。",
-    chips: ["创“芯”大赛全国三等奖", "研究生一等学业奖学金"],
+    title: "华中科技大学 · 信息与通信工程-硕士",
+    body: "推荐免试研究生，持续把通信工程背景和软件工程实践结合，重点关注工程系统设计、平台能力建设与 AI 工具落地。",
+    chips: ["中国研究生创“芯”大赛 · EDA 精英挑战赛全国三等奖", "研究生一等学业奖学金"],
+    details: ["推荐免试录取，研究方向聚焦工程化能力与系统实现。", "在校期间持续参与竞赛与项目实践，保持技术研究与工程落地并进。"],
   },
   {
     period: "2020.09 - 2024.06",
-    title: "武汉理工大学 · 通信工程本科",
-    body: "专业前 15%，获得保研资格。比赛、奖学金与项目并行推进。",
-    chips: ["计算机设计大赛国赛二等奖", "服务外包大赛国赛三等奖", "华为社会奖学金"],
+    title: "武汉理工大学 · 通信工程-本科",
+    body: "专业前 15%，获得保研资格。本科阶段在课程学习、竞赛获奖、项目实践和综合素质评定上持续保持稳定输出。",
+    chips: ["计算机设计大赛全国二等奖", "服务外包大赛全国三等奖", "华为社会奖学金", "三好学生标兵", "优秀毕业生"],
+    details: ["获得科研、竞赛和奖学金等多项荣誉。", "兼顾专业课程、比赛和项目开发，形成了较强的自驱学习与工程实践能力。"],
   },
 ];
 
@@ -80,7 +163,7 @@ export const projectExperiences = [
     title: "北师大教育培训管理服务平台（ETMS）",
     status: "Live",
     url: "https://jp.liyunol.com",
-    description: "面向教育培训的万人并发平台，负责核心后端架构与关键链路开发。",
+    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活1W+，并发1W+。承担项目负责人和后端研发职责。",
     bullets: [
       "基于 Spring Cloud Alibaba 搭建微服务体系，覆盖学习、培训与管理流程。",
       "围绕高并发场景设计缓存、异步解耦和服务治理能力。",
@@ -93,7 +176,7 @@ export const projectExperiences = [
     title: "中国高校社会科学数据中心（CMIS）",
     status: "Stable",
     url: "https://cmis.csdcinfo.cn",
-    description: "40 节点私有云平台与业务中枢，承担项目负责人与运维主管职责。",
+    description: "对实验室的私有云平台与业务中枢事务工作进行统筹安排、分工协作、技术指导和维护管理等工作。承担项目负责人与运维主管职责。",
     bullets: [
       "规划、部署并维护 40 节点私有云基础设施与容器平台。",
       "基于 Kubernetes、Rancher 与 Harbor 建立规范化交付链路。",
@@ -106,7 +189,7 @@ export const projectExperiences = [
     title: "湖北省社会科学项目与奖励申报评审系统（HSAS）",
     status: "Maintain",
     url: "https://hsas.csdcinfo.cn",
-    description: "面向全省社科工作者的申报评审平台，负责性能治理与安全加固。",
+    description: "为湖北省社科联提供社科课题、项目和成果申报、评审、统计分析等服务，支撑湖北全省社科工作者的申报评审工作。承担项目负责人和后端研发职责。",
     bullets: [
       "修复多项线上问题并优化高峰场景下的系统承载能力。",
       "对 Struts + Hibernate 历史架构进行治理与渐进式重构。",
@@ -124,12 +207,12 @@ export const portfolioWorks = [
     kind: "Web App",
     repo: "https://github.com/Alleyf/Md2Slide",
     demo: "https://md2-slide.vercel.app",
-    image: "https://opengraph.githubassets.com/1/Alleyf/Md2Slide",
+    image: "./resume/Md2Slide.gif",
     summary: "把 Markdown 内容快速转成带演示感和数学表达力的可视化幻灯片。",
     highlights: [
       "实时编辑预览，支持数学公式、代码高亮和媒体嵌入。",
       "支持 click-to-reveal、过渡动画、主题切换与部署链路。",
-      "更适合放进内容生产工具型作品集。",
+      "更适合放进内容生产工具型作品矩阵。",
     ],
     stack: ["React", "TypeScript", "Vite", "Remotion"],
   },
@@ -138,7 +221,7 @@ export const portfolioWorks = [
     subtitle: "桌面后台命令管理器",
     kind: "Desktop",
     repo: "https://github.com/Alleyf/CommandHub",
-    image: "https://opengraph.githubassets.com/1/Alleyf/CommandHub",
+    image: "./resume/CommandHub.png",
     summary: "用一个桌面界面统一管理本地常驻命令、进程状态和日志输出。",
     highlights: [
       "提供命令清单、进程巡视、日志尾部查看和运行状态追踪。",
@@ -152,7 +235,7 @@ export const portfolioWorks = [
     subtitle: "摄影设计项目管理平台",
     kind: "Vertical SaaS",
     repo: "https://github.com/Alleyf/pg-design",
-    image: "https://opengraph.githubassets.com/1/Alleyf/pg-design",
+    image: "./resume/PG Design.png",
     summary: "面向摄影师、设计师和创意团队的项目管理系统，强调垂直业务流程。",
     highlights: [
       "覆盖项目状态、预算分类、客户管理、团队协作和任务推进。",
@@ -166,7 +249,7 @@ export const portfolioWorks = [
     subtitle: "在线视频上传、处理与分享平台",
     kind: "Media Tool",
     repo: "https://github.com/Alleyf/VProOnline",
-    image: "https://opengraph.githubassets.com/1/Alleyf/VProOnline",
+    image: "./resume/VProOnline.png",
     summary: "基于 Node.js 的视频处理平台，覆盖上传、压缩、转码、裁剪和下载。",
     highlights: [
       "支持多格式转换、尺寸调整、音频提取和处理结果下载。",
@@ -208,7 +291,7 @@ export const blogPosts = [
     date: "2026.03.08",
     tags: ["部署", "运维"],
     handle: "alleyf",
-    description: "环境配置如果写得好，本质上就是稳定性与交付效率的浓缩版工程推文。",
+    description: "环境配置如果写得好，本质上就是稳定性与交付效率的保证。",
   },
 ];
 
@@ -219,6 +302,6 @@ export const contactConfig = {
   blog: "https://alleyf.github.io/",
   phone: "13669156253",
   location: "中国 · 武汉",
-  status: "开放交流 / 作品集展示中",
+  status: "找实习ing",
   defaultSubject: "来自个人网站的联系",
 };
