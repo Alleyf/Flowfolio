@@ -344,6 +344,7 @@ export default function App() {
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
+  const touchStartSection = useRef(null);
   const unlockTimerRef = useRef(null);
   const transitionTimerRef = useRef(null);
   const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
@@ -528,13 +529,18 @@ export default function App() {
 
     const onTouchStart = (event) => {
       touchStartY.current = event.touches[0]?.clientY ?? null;
+      touchStartSection.current = event.target instanceof Element ? event.target.closest(".section-shell") : null;
     };
 
     const onTouchEnd = (event) => {
       if (touchStartY.current == null) return;
       const deltaY = touchStartY.current - (event.changedTouches[0]?.clientY ?? touchStartY.current);
-      if (Math.abs(deltaY) > 50) navigateTo(activeIndex + (deltaY > 0 ? 1 : -1));
+      const direction = deltaY > 0 ? 1 : -1;
+      if (Math.abs(deltaY) > 70 && !canSectionScroll(touchStartSection.current, direction)) {
+        navigateTo(activeIndex + direction);
+      }
       touchStartY.current = null;
+      touchStartSection.current = null;
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
