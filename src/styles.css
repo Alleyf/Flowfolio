@@ -906,6 +906,49 @@ button {
   border-color: rgba(255, 184, 101, 0.35) !important;
 }
 
+.toolbox-action.active-share {
+  color: var(--cyan) !important;
+  border-color: rgba(110, 242, 255, 0.4) !important;
+  background: rgba(110, 242, 255, 0.12) !important;
+}
+
+.share-poster-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(1, 8, 12, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.share-poster-modal-shell {
+  width: min(980px, 100%);
+  max-height: calc(100vh - 48px);
+}
+
+.share-poster-modal-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.share-poster-preview-wrap {
+  margin-top: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(110, 242, 255, 0.2);
+  background: rgba(3, 11, 18, 0.86);
+  padding: 14px;
+  display: grid;
+  place-items: center;
+}
+
+.share-poster-preview-image {
+  width: min(100%, 420px);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+}
+
 @media (max-width: 1200px) {
   .toolbar {
     width: calc(100% - 24px);
@@ -1036,6 +1079,14 @@ button {
 }
 
 @media (max-width: 640px) {
+  .share-poster-modal-backdrop {
+    padding: 12px;
+  }
+
+  .share-poster-modal-shell {
+    max-height: calc(100vh - 24px);
+  }
+
   .slides-viewport,
   .slide-shell {
     min-height: 100dvh;

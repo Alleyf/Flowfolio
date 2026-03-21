@@ -5,7 +5,7 @@ import { RadarChart } from "echarts/charts";
 import { LegendComponent, RadarComponent, TooltipComponent } from "echarts/components";
 import { init, use as useEcharts } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ArrowUpRight, BookOpenText, BookMarked, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare, Wrench, X } from "lucide-react";
+import { ArrowUpRight, BookOpenText, BookMarked, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, Phone, Radar, School, Send, Share2, Sparkles, TerminalSquare, Wrench, X } from "lucide-react";
 import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, terminalConfig, topStats } from "./config/siteConfig";
 
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
@@ -338,6 +338,9 @@ export default function App() {
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [liked, setLiked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-liked") === "true" : false));
   const [bookmarked, setBookmarked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-bookmarked") === "true" : false));
+  const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
+  const [sharePosterPreview, setSharePosterPreview] = useState(null);
+  const [sharePosterGeneratedAt, setSharePosterGeneratedAt] = useState("");
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
@@ -634,6 +637,169 @@ export default function App() {
     } catch {}
     setBookmarked((current) => !current);
     setToolboxOpen(false);
+  };
+
+  const loadImage = (src) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Image load failed: ${src}`));
+    img.src = src;
+  });
+
+  const generateSharePoster = async () => {
+    if (isGeneratingPoster) return;
+    setIsGeneratingPoster(true);
+
+    const shareUrl = "https://alleyf.github.io/Flowfolio";
+    const generatedAt = new Date().toLocaleString("zh-CN", { hour12: false });
+    const posterWidth = 1080;
+    const posterHeight = 1620;
+    const canvas = document.createElement("canvas");
+    canvas.width = posterWidth;
+    canvas.height = posterHeight;
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      setIsGeneratingPoster(false);
+      return;
+    }
+
+    try {
+      const backgroundGradient = context.createLinearGradient(0, 0, posterWidth, posterHeight);
+      backgroundGradient.addColorStop(0, "#061018");
+      backgroundGradient.addColorStop(0.55, "#10283a");
+      backgroundGradient.addColorStop(1, "#071019");
+      context.fillStyle = backgroundGradient;
+      context.fillRect(0, 0, posterWidth, posterHeight);
+
+      context.fillStyle = "rgba(110, 242, 255, 0.16)";
+      context.beginPath();
+      context.arc(860, 230, 250, 0, Math.PI * 2);
+      context.fill();
+
+      context.fillStyle = "rgba(255, 184, 101, 0.14)";
+      context.beginPath();
+      context.arc(180, 1340, 280, 0, Math.PI * 2);
+      context.fill();
+
+      context.fillStyle = "#8cecff";
+      context.font = "700 34px 'Azeret Mono', 'Noto Sans SC', sans-serif";
+      context.fillText("FLOWFOLIO // PERSONAL SHARE CARD", 84, 116);
+
+      context.fillStyle = "#ffffff";
+      context.font = "900 96px 'Noto Sans SC', sans-serif";
+      context.fillText("CsFan", 84, 236);
+
+      context.fillStyle = "#d9eefc";
+      context.font = "600 36px 'Noto Sans SC', sans-serif";
+      context.fillText("Java 全栈工程师 · 微服务 · 云原生 · AI 工程化", 84, 296);
+
+      context.fillStyle = "rgba(7, 20, 32, 0.86)";
+      context.strokeStyle = "rgba(110, 242, 255, 0.32)";
+      context.lineWidth = 3;
+      context.beginPath();
+      context.roundRect(84, 352, 912, 680, 34);
+      context.fill();
+      context.stroke();
+
+      const posterImage = await loadImage(siteMeta.portfolioPoster);
+      context.drawImage(posterImage, 114, 382, 852, 620);
+
+      context.fillStyle = "rgba(7, 20, 32, 0.9)";
+      context.strokeStyle = "rgba(255, 255, 255, 0.08)";
+      context.beginPath();
+      context.roundRect(84, 1076, 912, 470, 28);
+      context.fill();
+      context.stroke();
+
+      context.fillStyle = "#ebf8ff";
+      context.font = "700 44px 'Noto Sans SC', sans-serif";
+      context.fillText("扫码查看完整站点", 124, 1160);
+
+      context.fillStyle = "#9fc4dc";
+      context.font = "500 26px 'Noto Sans SC', sans-serif";
+      context.fillText("作品矩阵 · 项目经历 · 博客推文 · 联系方式", 124, 1202);
+
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(shareUrl)}`;
+      const qrImage = await loadImage(qrUrl);
+
+      context.fillStyle = "#ffffff";
+      context.beginPath();
+      context.roundRect(700, 1134, 256, 256, 20);
+      context.fill();
+      context.drawImage(qrImage, 700, 1134, 256, 256);
+
+      context.fillStyle = "#9ec3dc";
+      context.font = "500 25px 'Azeret Mono', 'Noto Sans SC', sans-serif";
+      context.fillText(shareUrl, 124, 1312);
+
+      context.fillStyle = "#7fa3bb";
+      context.font = "500 24px 'Azeret Mono', 'Noto Sans SC', sans-serif";
+      context.fillText(`Generated at: ${generatedAt}`, 124, 1360);
+
+      context.fillStyle = "#6ef2ff";
+      context.font = "700 24px 'Azeret Mono', 'Noto Sans SC', sans-serif";
+      context.fillText("FLOWFOLIO", 124, 1460);
+      context.fillStyle = "#a9c8dd";
+      context.font = "500 24px 'Noto Sans SC', sans-serif";
+      context.fillText("让简历成为可交互的作品", 276, 1460);
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setTerminalHint("海报生成失败，请稍后再试。");
+          setIsGeneratingPoster(false);
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+        setSharePosterPreview((previous) => {
+          if (previous) URL.revokeObjectURL(previous);
+          return objectUrl;
+        });
+        setSharePosterGeneratedAt(generatedAt);
+        setTerminalHint("分享海报已生成，可在预览窗中复制图片。");
+        setToolboxOpen(false);
+        setIsGeneratingPoster(false);
+      }, "image/png", 0.96);
+    } catch (error) {
+      console.error(error);
+      setTerminalHint("海报生成失败，请检查网络后重试。");
+      setIsGeneratingPoster(false);
+    }
+  };
+
+  const handleCopyPosterImage = async () => {
+    if (!sharePosterPreview || !window.ClipboardItem || !navigator.clipboard?.write) {
+      setTerminalHint("当前浏览器不支持图片复制，请使用下载按钮。");
+      return;
+    }
+
+    try {
+      const response = await fetch(sharePosterPreview);
+      const blob = await response.blob();
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      setTerminalHint("分享海报已复制到剪贴板，可直接粘贴发送。");
+    } catch (error) {
+      console.error(error);
+      setTerminalHint("复制失败，请使用下载按钮。");
+    }
+  };
+
+  const handleDownloadPosterImage = () => {
+    if (!sharePosterPreview) return;
+    const anchor = document.createElement("a");
+    anchor.href = sharePosterPreview;
+    anchor.download = `flowfolio-share-${Date.now()}.png`;
+    anchor.click();
+  };
+
+  const closeSharePosterPreview = () => {
+    setSharePosterPreview((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return null;
+    });
+    setSharePosterGeneratedAt("");
   };
 
   const sectionNodes = [
@@ -1195,6 +1361,34 @@ export default function App() {
 
       {unlocked && (
         <>
+          <AnimatePresence>
+            {sharePosterPreview ? (
+              <motion.div className="share-poster-modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <motion.div className="share-poster-modal-shell" initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 14, scale: 0.97 }} transition={{ duration: 0.26, ease: "easeOut" }}>
+                  <Card className="glass-card share-poster-modal-card">
+                    <CardContent>
+                      <Stack direction={{ xs: "column", md: "row" }} spacing={2.2} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }}>
+                        <Box>
+                          <Typography variant="h5">分享海报预览</Typography>
+                          <Typography color="text.secondary">网站：https://alleyf.github.io/Flowfolio</Typography>
+                          <Typography variant="caption" color="text.secondary">生成时间：{sharePosterGeneratedAt}</Typography>
+                        </Box>
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2}>
+                          <Button variant="contained" onClick={handleCopyPosterImage}>复制海报图片</Button>
+                          <Button variant="outlined" onClick={handleDownloadPosterImage}>下载海报</Button>
+                          <Button variant="text" onClick={closeSharePosterPreview}>关闭</Button>
+                        </Stack>
+                      </Stack>
+                      <Box className="share-poster-preview-wrap">
+                        <img src={sharePosterPreview} alt="分享海报预览" className="share-poster-preview-image" />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
           <Box className="scroll-indicator-rail">
             {sectionMenus.map((menu, index) => (
               <button key={menu.id} type="button" onClick={() => navigateTo(index)} className={activeIndex === index ? "rail-dot active" : "rail-dot"} aria-label={menu.label} />
@@ -1245,6 +1439,9 @@ export default function App() {
                   </Button>
                   <Button className={bookmarked ? "toolbox-action active-bookmark" : "toolbox-action"} variant="outlined" onClick={handleBookmark} aria-label={bookmarked ? "取消收藏" : "收藏为书签"} title={bookmarked ? "取消收藏" : "收藏为书签"}>
                     <BookMarked size={18} />
+                  </Button>
+                  <Button className={isGeneratingPoster ? "toolbox-action active-share" : "toolbox-action"} variant="outlined" onClick={generateSharePoster} aria-label="生成分享海报" title="生成分享海报" disabled={isGeneratingPoster}>
+                    <Share2 size={18} />
                   </Button>
                 </motion.div>
               )}
