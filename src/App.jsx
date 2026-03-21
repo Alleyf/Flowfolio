@@ -775,7 +775,7 @@ export default function App() {
 
   const sendMessage = () => {
     const subject = encodeURIComponent(form.subject || contactConfig.defaultSubject);
-    const body = encodeURIComponent(`姓名：${form.name || "未填写"}\n访客邮箱：${form.email || "未填写"}\n\n${form.message || ""}`);
+    const body = encodeURIComponent(`姓名：${form.name || "未填写"}\n访客公司：${form.email || "未填写"}\n\n${form.message || ""}`);
     window.location.href = `mailto:${contactConfig.inboxEmail}?subject=${subject}&body=${body}`;
   };
 
@@ -1426,7 +1426,7 @@ export default function App() {
                   <Typography color="text.secondary" sx={{ mb: 2 }}>欢迎直接留下你的联系方式与沟通意向，我会通过邮件尽快回复。</Typography>
                   <Stack spacing={2}>
                     <TextField label="你的姓名" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} fullWidth />
-                    <TextField label="你的邮箱" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} fullWidth />
+                    <TextField label="你的公司" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} fullWidth />
                     <TextField label="邮件主题" value={form.subject} onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))} fullWidth />
                     <TextField label="消息内容" multiline minRows={5} value={form.message} onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))} fullWidth />
                     <Button variant="contained" startIcon={<Send size={18} />} onClick={sendMessage}>发送消息</Button>
@@ -1471,7 +1471,7 @@ export default function App() {
         <Box className="toolbar">
           <Box>
             <Typography variant="h6" className="brand">{siteMeta.brand}</Typography>
-            <Typography variant="caption" color="text.secondary">Flow-driven portfolio resume</Typography>
+            <Typography variant="caption" color="text.secondary" className="brand-subtitle">Flow-driven portfolio resume</Typography>
           </Box>
           <Stack direction="row" spacing={0.8} className="theme-switch" aria-label="主题切换">
             <Button variant={themeMode === "system" ? "contained" : "outlined"} size="small" className="theme-switch-btn" onClick={() => setThemeMode("system")} aria-label="跟随系统主题" title="跟随系统主题">
@@ -1490,8 +1490,9 @@ export default function App() {
                 {menu.label}
               </Button>
             ))}
-            <Button href={resumeDownloadPath} download variant="contained" startIcon={<Download size={18} />}>下载简历</Button>
           </Stack>
+          <Button href={resumeDownloadPath} download variant="contained" startIcon={<Download size={18} />} className="desktop-resume-download">下载简历</Button>
+          <Button href={resumeDownloadPath} download variant="contained" startIcon={<Download size={16} />} size="small" className="mobile-resume-download">简历</Button>
         </Box>
       </AppBar>
 

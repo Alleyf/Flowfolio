@@ -88,6 +88,16 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+}
+
+.desktop-resume-download {
+  white-space: nowrap;
+}
+
+.mobile-resume-download {
+  display: none !important;
+  white-space: nowrap;
 }
 
 .brand,
@@ -1379,6 +1389,26 @@ button {
     display: none !important;
   }
 
+  .brand-subtitle {
+    display: none;
+  }
+
+  .toolbar {
+    justify-content: flex-start;
+  }
+
+  .theme-switch {
+    margin-left: auto;
+  }
+
+  .desktop-resume-download {
+    display: none !important;
+  }
+
+  .mobile-resume-download {
+    display: inline-flex !important;
+  }
+
   .slide-shell {
     padding-top: calc(var(--nav-height) + 42px);
     padding-bottom: 68px;
@@ -1453,11 +1483,17 @@ button {
 
   .toolbar {
     width: calc(100% - 20px);
+    gap: 8px;
   }
 
   .brand {
     font-size: 0.95rem !important;
     letter-spacing: 0.08em;
+  }
+
+  .mobile-resume-download {
+    min-width: auto !important;
+    padding-inline: 10px !important;
   }
 
   .hero-copy {
