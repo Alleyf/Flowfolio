@@ -4,6 +4,8 @@
   --gold: #ffb865;
   --text-soft: #8fa8be;
   --nav-height: 84px;
+  --font-sans: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Mono", "Consolas", "Courier New", monospace;
 }
 
 :root[data-theme="dark"] {
@@ -105,7 +107,7 @@ button {
 .terminal-title,
 .terminal-prompt,
 .terminal-output {
-  font-family: "Azeret Mono", monospace !important;
+  font-family: var(--font-mono) !important;
 }
 
 .brand {
@@ -1070,12 +1072,36 @@ button {
   right: 10px;
   bottom: 10px;
   z-index: 2;
-  font-family: "Azeret Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.66rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #daf4ff;
   opacity: 0.92;
+}
+
+@media (prefers-reduced-motion: reduce), (max-width: 900px) {
+  .art-lead-image {
+    filter: none;
+  }
+
+  .art-photo-tile {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transform: none;
+  }
+
+  .art-photo-tile:hover,
+  .art-photo-tile.active {
+    transform: translateY(-2px);
+  }
+
+  .art-photo-image {
+    transition: none;
+  }
+
+  .art-photo-tile:hover .art-photo-image {
+    transform: none;
+  }
 }
 
 .tweet-card-wrap {

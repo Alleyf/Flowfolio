@@ -14,7 +14,7 @@ const theme = createTheme({
   },
   shape: { borderRadius: 20 },
   typography: {
-    fontFamily: '"Noto Sans SC", sans-serif',
+    fontFamily: '"MiSans","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei","Segoe UI",sans-serif',
     h1: { fontWeight: 900, letterSpacing: "-0.04em" },
     h2: { fontWeight: 800, letterSpacing: "-0.03em" },
     h3: { fontWeight: 700 },

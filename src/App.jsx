@@ -12,17 +12,14 @@ useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, Canva
 
 const SLIDE_TRANSITION_MS = 820;
 
-const artPhotoModules = import.meta.glob("../public/art/**/*.webp", {
-  eager: true,
-  import: "default",
-});
+const artPhotoModules = import.meta.glob("../public/art/**/*.webp");
 
-const artPhotoCategoryMap = Object.entries(artPhotoModules).reduce((accumulator, [path, src]) => {
+const artPhotoCategoryMap = Object.keys(artPhotoModules).reduce((accumulator, path) => {
   const matched = path.match(/\/art\/([^/]+)\/[^/]+$/);
   if (!matched) return accumulator;
   const category = decodeURIComponent(matched[1]);
   if (!accumulator[category]) accumulator[category] = [];
-  accumulator[category].push(src);
+  accumulator[category].push(path.replace("../public", ""));
   return accumulator;
 }, {});
 
@@ -398,6 +395,7 @@ export default function App() {
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
   const touchStartSection = useRef(null);
+  const artHoverRafRef = useRef(null);
   const toolboxRef = useRef(null);
   const unlockTimerRef = useRef(null);
   const transitionTimerRef = useRef(null);
@@ -565,6 +563,7 @@ export default function App() {
   useEffect(() => () => {
     window.clearTimeout(unlockTimerRef.current);
     window.clearTimeout(transitionTimerRef.current);
+    if (artHoverRafRef.current) window.cancelAnimationFrame(artHoverRafRef.current);
   }, []);
 
   useEffect(() => {
@@ -577,24 +576,35 @@ export default function App() {
   }, [artCategoryIndex, portfolioMode]);
 
   useEffect(() => {
-    if (portfolioMode !== "art" || !artPhotoCategories.length) return undefined;
+    if (portfolioMode !== "art" || !artPhotoCategories.length || activeIndex !== portfolioSectionIndex) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    if ((navigator.hardwareConcurrency ?? 8) <= 4) return undefined;
 
     const safeCategoryIndex = ((artCategoryIndex % artPhotoCategories.length) + artPhotoCategories.length) % artPhotoCategories.length;
     const currentPhotos = artPhotoCategories[safeCategoryIndex]?.photos ?? [];
     if (currentPhotos.length <= 1) return undefined;
 
     const timer = window.setInterval(() => {
+      if (document.hidden) return;
       setArtPhotoIndex((current) => (current + 1) % currentPhotos.length);
-    }, 3500);
+    }, 5500);
 
     return () => window.clearInterval(timer);
-  }, [artCategoryIndex, portfolioMode]);
+  }, [activeIndex, artCategoryIndex, portfolioMode, portfolioSectionIndex]);
 
   useEffect(() => {
     if (portfolioMode !== "art") return;
     const randomIndex = Math.floor(Math.random() * artCopyPool.length);
     setArtCopy(artCopyPool[randomIndex]);
-  }, [portfolioMode, artCategoryIndex, artPhotoIndex]);
+  }, [portfolioMode, artCategoryIndex]);
+
+  const handleArtTileHover = (index) => {
+    if (index === artPhotoIndex || artHoverRafRef.current) return;
+    artHoverRafRef.current = window.requestAnimationFrame(() => {
+      setArtPhotoIndex(index);
+      artHoverRafRef.current = null;
+    });
+  };
 
   const preloadAround = (index) => {
     setLoadedIndexes((current) => {
@@ -1235,7 +1245,7 @@ export default function App() {
                   <Card className="glass-card portfolio-card">
                     <Grid container>
                       <Grid size={{ xs: 12, md: 7 }}>
-                        <img src={work.image} alt={work.title} loading="lazy" className="portfolio-image portfolio-image-large" />
+                        <img src={work.image} alt={work.title} loading="lazy" decoding="async" className="portfolio-image portfolio-image-large" />
                       </Grid>
                       <Grid size={{ xs: 12, md: 5 }}>
                         <CardContent className="portfolio-content">
@@ -1285,7 +1295,7 @@ export default function App() {
                     <Card className="glass-card portfolio-card art-matrix-shell">
                       <Grid container>
                         <Grid size={{ xs: 12, md: 7 }}>
-                          {artLeadPhoto ? <img src={artLeadPhoto} alt={normalizeArtCategoryName(activeArtCategory.name)} loading="lazy" className="portfolio-image portfolio-image-large art-lead-image" /> : null}
+                          {artLeadPhoto ? <img src={artLeadPhoto} alt={normalizeArtCategoryName(activeArtCategory.name)} loading="lazy" decoding="async" className="portfolio-image portfolio-image-large art-lead-image" /> : null}
                         </Grid>
                         <Grid size={{ xs: 12, md: 5 }}>
                           <CardContent className="portfolio-content">
@@ -1321,11 +1331,11 @@ export default function App() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.28), ease: "easeOut" }}
                             whileHover={{ y: -8, scale: 1.02 }}
-                            onMouseEnter={() => setArtPhotoIndex(index)}
-                            onFocus={() => setArtPhotoIndex(index)}
+                            onMouseEnter={() => handleArtTileHover(index)}
+                            onFocus={() => handleArtTileHover(index)}
                             onClick={() => setArtPhotoIndex(index)}
                           >
-                            <img src={photo} alt={`${normalizeArtCategoryName(activeArtCategory.name)}-${index + 1}`} loading="lazy" className="art-photo-image" />
+                            <img src={photo} alt={`${normalizeArtCategoryName(activeArtCategory.name)}-${index + 1}`} loading="lazy" decoding="async" className="art-photo-image" />
                             <Box component="figcaption" className="art-photo-caption">FRAME {String(index + 1).padStart(2, "0")}</Box>
                           </motion.figure>
                         );
