@@ -6,6 +6,14 @@
   --nav-height: 84px;
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 html,
 body,
 #root {
@@ -95,9 +103,278 @@ button {
   letter-spacing: 0.12em;
 }
 
+.theme-switch {
+  align-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 16, 25, 0.48);
+}
+
+.theme-switch-btn {
+  min-width: 36px !important;
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  border-radius: 999px !important;
+}
+
 .hero-subtitle,
 .period-label {
   color: var(--cyan);
+}
+
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(70, 120, 190, 0.22), transparent 22%),
+    radial-gradient(circle at 85% 10%, rgba(120, 190, 210, 0.18), transparent 18%),
+    linear-gradient(180deg, #eef4f9 0%, #e8f1f8 100%);
+  color: #15293c;
+}
+
+:root[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(14, 36, 60, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 36, 60, 0.05) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] .site-nav {
+  background: rgba(236, 246, 255, 0.82) !important;
+  border-bottom-color: rgba(8, 30, 58, 0.12);
+}
+
+:root[data-theme="light"] .brand,
+:root[data-theme="light"] .terminal-title,
+:root[data-theme="light"] .terminal-prompt,
+:root[data-theme="light"] .terminal-output {
+  color: #1a2f45;
+}
+
+:root[data-theme="light"] .hero-copy,
+:root[data-theme="light"] .MuiTypography-colorTextSecondary {
+  color: #4a657e !important;
+}
+
+:root[data-theme="light"] .glass-card {
+  border-color: rgba(13, 42, 70, 0.14);
+  background: linear-gradient(180deg, rgba(244, 250, 255, 0.94), rgba(234, 244, 252, 0.9)) !important;
+  box-shadow: 0 22px 68px rgba(20, 55, 92, 0.14);
+}
+
+:root[data-theme="light"] .glass-card::before {
+  background: linear-gradient(130deg, rgba(17, 58, 92, 0.06), transparent 26%, transparent 74%, rgba(17, 58, 92, 0.04));
+}
+
+:root[data-theme="light"] .slide-status,
+:root[data-theme="light"] .theme-switch,
+:root[data-theme="light"] .floating-toolbox-panel,
+:root[data-theme="light"] .site-counter-fixed {
+  background: rgba(239, 248, 255, 0.86);
+  border-color: rgba(18, 52, 84, 0.12);
+}
+
+:root[data-theme="light"] .site-counter-fixed .MuiTypography-root,
+:root[data-theme="light"] .slide-status .MuiTypography-root,
+:root[data-theme="light"] .floating-toolbox .toolbox-action {
+  color: #274663 !important;
+}
+
+:root[data-theme="light"] .toolbox-action {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(14, 47, 75, 0.14) !important;
+}
+
+:root[data-theme="light"] .theme-switch-btn {
+  border-color: rgba(14, 47, 75, 0.16) !important;
+}
+
+:root[data-theme="light"] .MuiTypography-root,
+:root[data-theme="light"] .MuiCardContent-root,
+:root[data-theme="light"] .MuiChip-label,
+:root[data-theme="light"] .MuiFormLabel-root,
+:root[data-theme="light"] .MuiInputBase-input,
+:root[data-theme="light"] .MuiButtonBase-root {
+  color: #1b3550;
+}
+
+:root[data-theme="light"] .MuiTypography-colorTextSecondary,
+:root[data-theme="light"] .MuiInputBase-input::placeholder,
+:root[data-theme="light"] .MuiFormHelperText-root {
+  color: #4d6880 !important;
+}
+
+:root[data-theme="light"] .MuiButton-contained {
+  color: #f5fbff !important;
+  background: linear-gradient(135deg, #2a5f8f, #3678a9) !important;
+}
+
+:root[data-theme="light"] .MuiButton-outlined {
+  border-color: rgba(24, 63, 96, 0.28) !important;
+  color: #1f4466 !important;
+  background: rgba(255, 255, 255, 0.68) !important;
+}
+
+:root[data-theme="light"] .status-chip,
+:root[data-theme="light"] .hero-chip,
+:root[data-theme="light"] .section-chip,
+:root[data-theme="light"] .command-chip,
+:root[data-theme="light"] .MuiChip-root {
+  border-color: rgba(24, 63, 96, 0.22) !important;
+  background: rgba(35, 96, 138, 0.1) !important;
+  color: #214a6d !important;
+}
+
+:root[data-theme="light"] .terminal-window {
+  border-color: rgba(20, 56, 85, 0.2);
+  background: rgba(244, 251, 255, 0.98);
+}
+
+:root[data-theme="light"] .terminal-head {
+  border-bottom-color: rgba(20, 56, 85, 0.14);
+  background: rgba(24, 76, 118, 0.08);
+}
+
+:root[data-theme="light"] .terminal-output {
+  color: #1f3c58;
+}
+
+:root[data-theme="light"] .terminal-alert {
+  background: rgba(44, 120, 179, 0.08) !important;
+  border-color: rgba(44, 120, 179, 0.22) !important;
+}
+
+:root[data-theme="light"] .MuiInputBase-root {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme="light"] .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(23, 66, 101, 0.24) !important;
+}
+
+:root[data-theme="light"] .site-copyright .MuiTypography-root {
+  color: #3f5e78 !important;
+}
+
+:root[data-theme="light"] .education-tier-badge {
+  background: linear-gradient(135deg, rgba(54, 124, 170, 0.16), rgba(225, 155, 72, 0.14));
+  border-color: rgba(35, 89, 132, 0.26);
+  color: #1d3f5f;
+}
+
+:root[data-theme="light"] .status-highlight {
+  background: linear-gradient(135deg, rgba(230, 173, 93, 0.24), rgba(98, 167, 209, 0.2));
+  border-color: rgba(199, 136, 43, 0.4);
+  color: #5c3d13;
+}
+
+:root[data-theme="light"] .project-role-panel {
+  background: rgba(242, 249, 255, 0.84);
+  border-color: rgba(24, 63, 96, 0.16);
+}
+
+:root[data-theme="light"] .project-detail-title,
+:root[data-theme="light"] .project-detail-copy,
+:root[data-theme="light"] .bullet-list,
+:root[data-theme="light"] .strong-text {
+  color: #1f3f5e;
+}
+
+:root[data-theme="light"] .project-status-chip.live {
+  color: #1f6248 !important;
+  background: rgba(72, 214, 167, 0.2) !important;
+  border-color: rgba(43, 143, 108, 0.4) !important;
+}
+
+:root[data-theme="light"] .project-status-chip.stable {
+  color: #234f80 !important;
+  background: rgba(86, 161, 255, 0.2) !important;
+  border-color: rgba(57, 117, 186, 0.4) !important;
+}
+
+:root[data-theme="light"] .project-status-chip.maintain {
+  color: #7a4f18 !important;
+  background: rgba(255, 184, 101, 0.24) !important;
+  border-color: rgba(204, 142, 68, 0.44) !important;
+}
+
+:root[data-theme="light"] .flip-tip-badge {
+  background: rgba(63, 132, 184, 0.16);
+  border-color: rgba(37, 95, 140, 0.32);
+  color: #1d4a70;
+}
+
+:root[data-theme="light"] .keyword-highlight,
+:root[data-theme="light"] .hero-subtitle,
+:root[data-theme="light"] .period-label,
+:root[data-theme="light"] .art-matrix-kicker {
+  color: #21669a;
+}
+
+:root[data-theme="light"] .portfolio-chip.active {
+  background: rgba(63, 132, 184, 0.18) !important;
+  border-color: rgba(37, 95, 140, 0.34) !important;
+}
+
+:root[data-theme="light"] .portfolio-mode-chip {
+  border-color: rgba(24, 63, 96, 0.24) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #214766 !important;
+}
+
+:root[data-theme="light"] .portfolio-mode-chip.active {
+  background: linear-gradient(135deg, rgba(54, 124, 170, 0.18), rgba(230, 173, 93, 0.16)) !important;
+  border-color: rgba(33, 86, 126, 0.4) !important;
+}
+
+:root[data-theme="light"] .art-copy-block {
+  background: linear-gradient(145deg, rgba(77, 149, 196, 0.16), rgba(237, 246, 253, 0.96));
+  border-color: rgba(37, 95, 140, 0.26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 14px 32px rgba(20, 55, 92, 0.12);
+}
+
+:root[data-theme="light"] .art-copy-label {
+  color: #2b6a97;
+}
+
+:root[data-theme="light"] .art-copy-code {
+  color: #2c5f88;
+  background: rgba(239, 248, 255, 0.92);
+  border-color: rgba(42, 101, 145, 0.26);
+}
+
+:root[data-theme="light"] .art-copy-text {
+  color: #1f4261;
+}
+
+:root[data-theme="light"] .art-copy-meta .MuiChip-root {
+  border-color: rgba(37, 95, 140, 0.24) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #1f4465 !important;
+}
+
+:root[data-theme="light"] .poster-close,
+:root[data-theme="light"] .share-poster-preview-wrap,
+:root[data-theme="light"] .share-poster-generating-panel {
+  background: rgba(242, 249, 255, 0.94) !important;
+  border-color: rgba(24, 63, 96, 0.18) !important;
+  color: #1f4160 !important;
+}
+
+:root[data-theme="light"] .share-poster-modal-backdrop,
+:root[data-theme="light"] .share-poster-generating-backdrop,
+:root[data-theme="light"] .poster-modal-backdrop {
+  background: rgba(205, 223, 239, 0.74);
+}
+
+:root[data-theme="light"] .poster-loader-ring {
+  border-color: rgba(40, 106, 150, 0.18);
+  border-top-color: #2c6b9b;
+  border-right-color: #ca8f3a;
+}
+
+:root[data-theme="light"] .art-photo-caption {
+  color: #e6f5ff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
 
 .nav-button-active {
@@ -966,6 +1243,43 @@ button {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
 }
 
+.share-poster-generating-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 47;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 10, 16, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.share-poster-generating-panel {
+  width: min(560px, 100%);
+  border-radius: 22px;
+  padding: 28px 26px;
+  text-align: center;
+  border: 1px solid rgba(110, 242, 255, 0.24);
+  background: linear-gradient(165deg, rgba(8, 18, 30, 0.95), rgba(6, 13, 22, 0.92));
+  box-shadow: 0 32px 88px rgba(0, 0, 0, 0.45);
+}
+
+.poster-loader-ring {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 3px solid rgba(110, 242, 255, 0.2);
+  border-top-color: var(--cyan);
+  border-right-color: rgba(255, 184, 101, 0.84);
+  animation: posterRingSpin 0.9s linear infinite;
+}
+
+@keyframes posterRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 1200px) {
   .toolbar {
     width: calc(100% - 24px);
@@ -1112,6 +1426,10 @@ button {
 
   .share-poster-modal-shell {
     max-height: calc(100vh - 24px);
+  }
+
+  .share-poster-generating-panel {
+    padding: 22px 18px;
   }
 
   .slides-viewport,

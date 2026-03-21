@@ -72,7 +72,7 @@ export const terminalConfig = {
     {
       name: "contact",
       description: "输出联系方式",
-      output: ["mail: alleyf@qq.com", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
+      output: ["mail: alleyf@csdcinfo.cn", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
     },
     {
       name: "clear",
@@ -115,7 +115,7 @@ export const digitalIdentity = {
     { label: "学校", value: "华中科技大学" },
     { label: "学历", value: "硕士" },
     { label: "专业", value: "信息与通信工程" },
-    { label: "邮箱", value: "alleyf@qq.com" },
+    { label: "邮箱", value: "alleyf@csdcinfo.cn" },
     { label: "博客", value: "alleyf.github.io" },
     { label: "状态", value: "找实习ing" },
   ],
@@ -311,12 +311,12 @@ export const blogPosts = [
 ];
 
 export const contactConfig = {
-  email: "alleyf@qq.com",
-  inboxEmail: "alleyf@qq.com",
+  email: "alleyf@csdcinfo.cn",
+  inboxEmail: "alleyf@csdcinfo.cn",
   github: "https://github.com/Alleyf",
   blog: "https://alleyf.github.io/",
   phone: "19223276194",
   location: "中国 · 武汉",
   status: "找实习ing",
-  defaultSubject: "来自个人网站的联系",
+  defaultSubject: "纳入人才库，发送offer",
 };

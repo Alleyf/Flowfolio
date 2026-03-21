@@ -5,7 +5,7 @@ import { RadarChart } from "echarts/charts";
 import { LegendComponent, RadarComponent, TooltipComponent } from "echarts/components";
 import { init, use as useEcharts } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ArrowUpRight, BookOpenText, BookMarked, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, Phone, Radar, School, Send, Share2, Sparkles, TerminalSquare, Wrench, X } from "lucide-react";
+import { ArrowUpRight, BookOpenText, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, MonitorCog, MoonStar, Phone, Radar, School, Send, Share2, Sparkles, Sun, TerminalSquare, Wrench, X } from "lucide-react";
 import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, terminalConfig, topStats } from "./config/siteConfig";
 
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
@@ -139,8 +139,37 @@ function HeroScene() {
 function SkillsRadar() {
   const ref = useRef(null);
 
+  const resolveRadarPalette = () => {
+    if (typeof document === "undefined") {
+      return {
+        axisNameColor: "#dff7ff",
+        splitAreaColors: ["rgba(110,242,255,0.04)", "rgba(110,242,255,0.015)"],
+        splitLineColor: "rgba(110,242,255,0.14)",
+        axisLineColor: "rgba(110,242,255,0.18)",
+      };
+    }
+
+    const theme = document.documentElement.getAttribute("data-theme") || "dark";
+    if (theme === "light") {
+      return {
+        axisNameColor: "#1f476a",
+        splitAreaColors: ["rgba(63,132,184,0.13)", "rgba(63,132,184,0.05)"],
+        splitLineColor: "rgba(37,95,140,0.35)",
+        axisLineColor: "rgba(37,95,140,0.4)",
+      };
+    }
+
+    return {
+      axisNameColor: "#dff7ff",
+      splitAreaColors: ["rgba(110,242,255,0.04)", "rgba(110,242,255,0.015)"],
+      splitLineColor: "rgba(110,242,255,0.14)",
+      axisLineColor: "rgba(110,242,255,0.18)",
+    };
+  };
+
   useEffect(() => {
     const chart = init(ref.current);
+    const palette = resolveRadarPalette();
     chart.setOption({
       backgroundColor: "transparent",
       radar: {
@@ -155,10 +184,10 @@ function SkillsRadar() {
         shape: "polygon",
         splitNumber: 5,
         radius: "68%",
-        axisName: { color: "#dff7ff", fontSize: 12 },
-        splitArea: { areaStyle: { color: ["rgba(110,242,255,0.04)", "rgba(110,242,255,0.015)"] } },
-        splitLine: { lineStyle: { color: "rgba(110,242,255,0.14)" } },
-        axisLine: { lineStyle: { color: "rgba(110,242,255,0.18)" } },
+        axisName: { color: palette.axisNameColor, fontSize: 12 },
+        splitArea: { areaStyle: { color: palette.splitAreaColors } },
+        splitLine: { lineStyle: { color: palette.splitLineColor } },
+        axisLine: { lineStyle: { color: palette.axisLineColor } },
       },
       series: [
         {
@@ -176,10 +205,24 @@ function SkillsRadar() {
     });
 
     const resize = () => chart.resize();
+    const onThemeChange = () => {
+      const nextPalette = resolveRadarPalette();
+      chart.setOption({
+        radar: {
+          axisName: { color: nextPalette.axisNameColor, fontSize: 12 },
+          splitArea: { areaStyle: { color: nextPalette.splitAreaColors } },
+          splitLine: { lineStyle: { color: nextPalette.splitLineColor } },
+          axisLine: { lineStyle: { color: nextPalette.axisLineColor } },
+        },
+      });
+    };
+
     window.addEventListener("resize", resize);
+    window.addEventListener("flowfolio-theme-change", onThemeChange);
 
     return () => {
       window.removeEventListener("resize", resize);
+      window.removeEventListener("flowfolio-theme-change", onThemeChange);
       chart.dispose();
     };
   }, []);
@@ -337,15 +380,25 @@ export default function App() {
   const [showPortfolioPoster, setShowPortfolioPoster] = useState(false);
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [liked, setLiked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-liked") === "true" : false));
-  const [bookmarked, setBookmarked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-bookmarked") === "true" : false));
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   const [sharePosterPreview, setSharePosterPreview] = useState(null);
   const [sharePosterGeneratedAt, setSharePosterGeneratedAt] = useState("");
+  const [showPosterGeneratingModal, setShowPosterGeneratingModal] = useState(false);
   const [busuanziStats, setBusuanziStats] = useState({ pv: "--", uv: "--" });
+  const [themeMode, setThemeMode] = useState(() => {
+    if (typeof window === "undefined") return "dark";
+    const saved = window.localStorage.getItem("flowfolio-theme-mode");
+    return saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
+  });
+  const [systemTheme, setSystemTheme] = useState(() => {
+    if (typeof window === "undefined") return "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
   const touchStartSection = useRef(null);
+  const toolboxRef = useRef(null);
   const unlockTimerRef = useRef(null);
   const transitionTimerRef = useRef(null);
   const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
@@ -362,8 +415,29 @@ export default function App() {
   }, [liked]);
 
   useEffect(() => {
-    window.localStorage.setItem("flowfolio-bookmarked", String(bookmarked));
-  }, [bookmarked]);
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("flowfolio-theme-mode", themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemTheme = () => {
+      setSystemTheme(media.matches ? "dark" : "light");
+    };
+
+    handleSystemTheme();
+    media.addEventListener("change", handleSystemTheme);
+    return () => media.removeEventListener("change", handleSystemTheme);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const resolvedTheme = themeMode === "system" ? systemTheme : themeMode;
+    document.documentElement.setAttribute("data-theme", resolvedTheme);
+    document.documentElement.setAttribute("data-theme-mode", themeMode);
+    window.dispatchEvent(new Event("flowfolio-theme-change"));
+  }, [systemTheme, themeMode]);
 
   useEffect(() => {
     if (!unlocked || activeIndex < Math.max(1, portfolioSectionIndex - 1)) return;
@@ -388,6 +462,26 @@ export default function App() {
       page_location: pageLocation,
     });
   }, [activeIndex, unlocked]);
+
+  useEffect(() => {
+    if (!unlocked || typeof window === "undefined") return undefined;
+
+    const onEscapeCloseModal = (event) => {
+      if (event.key !== "Escape") return;
+      if (showPosterGeneratingModal) {
+        setShowPosterGeneratingModal(false);
+      }
+      if (sharePosterPreview) {
+        closeSharePosterPreview();
+      }
+      if (showPortfolioPoster) {
+        setShowPortfolioPoster(false);
+      }
+    };
+
+    window.addEventListener("keydown", onEscapeCloseModal);
+    return () => window.removeEventListener("keydown", onEscapeCloseModal);
+  }, [sharePosterPreview, showPortfolioPoster, showPosterGeneratingModal, unlocked]);
 
   useEffect(() => {
     if (!unlocked || typeof window === "undefined") return undefined;
@@ -424,6 +518,19 @@ export default function App() {
       window.clearInterval(timer);
     };
   }, [unlocked]);
+
+  useEffect(() => {
+    if (!toolboxOpen || typeof window === "undefined") return undefined;
+
+    const onPointerDownOutsideToolbox = (event) => {
+      if (!(event.target instanceof Element)) return;
+      if (toolboxRef.current?.contains(event.target)) return;
+      setToolboxOpen(false);
+    };
+
+    window.addEventListener("pointerdown", onPointerDownOutsideToolbox);
+    return () => window.removeEventListener("pointerdown", onPointerDownOutsideToolbox);
+  }, [toolboxOpen]);
 
   useEffect(() => {
     let line = 0;
@@ -672,16 +779,6 @@ export default function App() {
     window.location.href = `mailto:${contactConfig.inboxEmail}?subject=${subject}&body=${body}`;
   };
 
-  const handleBookmark = async () => {
-    const currentSection = sectionMenus[activeIndex];
-    const url = `${window.location.origin}${window.location.pathname}#${currentSection.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {}
-    setBookmarked((current) => !current);
-    setToolboxOpen(false);
-  };
-
   const loadImage = (src) => new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -693,6 +790,7 @@ export default function App() {
   const generateSharePoster = async () => {
     if (isGeneratingPoster) return;
     setIsGeneratingPoster(true);
+    setShowPosterGeneratingModal(true);
 
     const shareUrl = "https://alleyf.github.io/Flowfolio";
     const generatedAt = new Date().toLocaleString("zh-CN", { hour12: false });
@@ -767,11 +865,27 @@ export default function App() {
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(shareUrl)}`;
       const qrImage = await loadImage(qrUrl);
 
+      context.fillStyle = "rgba(255, 255, 255, 0.12)";
+      context.beginPath();
+      context.roundRect(678, 1112, 300, 344, 28);
+      context.fill();
+
       context.fillStyle = "#ffffff";
       context.beginPath();
-      context.roundRect(700, 1134, 256, 256, 20);
+      context.roundRect(700, 1134, 256, 256, 22);
       context.fill();
-      context.drawImage(qrImage, 700, 1134, 256, 256);
+
+      context.lineWidth = 1;
+      context.strokeStyle = "rgba(12, 30, 45, 0.14)";
+      context.beginPath();
+      context.roundRect(706, 1140, 244, 244, 18);
+      context.stroke();
+
+      context.drawImage(qrImage, 718, 1152, 220, 220);
+
+      context.fillStyle = "#d6ecff";
+      context.font = "600 20px 'Noto Sans SC', sans-serif";
+      context.fillText("微信扫码访问", 756, 1416);
 
       context.fillStyle = "#9ec3dc";
       context.font = "500 25px 'Azeret Mono', 'Noto Sans SC', sans-serif";
@@ -803,11 +917,13 @@ export default function App() {
         setSharePosterGeneratedAt(generatedAt);
         setTerminalHint("分享海报已生成，可在预览窗中复制图片。");
         setToolboxOpen(false);
+        setShowPosterGeneratingModal(false);
         setIsGeneratingPoster(false);
       }, "image/png", 0.96);
     } catch (error) {
       console.error(error);
       setTerminalHint("海报生成失败，请检查网络后重试。");
+      setShowPosterGeneratingModal(false);
       setIsGeneratingPoster(false);
     }
   };
@@ -1357,6 +1473,17 @@ export default function App() {
             <Typography variant="h6" className="brand">{siteMeta.brand}</Typography>
             <Typography variant="caption" color="text.secondary">Flow-driven portfolio resume</Typography>
           </Box>
+          <Stack direction="row" spacing={0.8} className="theme-switch" aria-label="主题切换">
+            <Button variant={themeMode === "system" ? "contained" : "outlined"} size="small" className="theme-switch-btn" onClick={() => setThemeMode("system")} aria-label="跟随系统主题" title="跟随系统主题">
+              <MonitorCog size={14} />
+            </Button>
+            <Button variant={themeMode === "light" ? "contained" : "outlined"} size="small" className="theme-switch-btn" onClick={() => setThemeMode("light")} aria-label="浅色主题" title="浅色主题">
+              <Sun size={14} />
+            </Button>
+            <Button variant={themeMode === "dark" ? "contained" : "outlined"} size="small" className="theme-switch-btn" onClick={() => setThemeMode("dark")} aria-label="深色主题" title="深色主题">
+              <MoonStar size={14} />
+            </Button>
+          </Stack>
           <Stack direction="row" spacing={1} className="nav-actions">
             {sectionMenus.map((menu, index) => (
               <Button key={menu.id} onClick={() => navigateTo(index)} color={activeIndex === index ? "primary" : "inherit"} className={activeIndex === index ? "nav-button-active" : ""}>
@@ -1400,6 +1527,18 @@ export default function App() {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {unlocked && showPosterGeneratingModal ? (
+          <motion.div className="share-poster-generating-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="share-poster-generating-panel" initial={{ opacity: 0, y: 22, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 14, scale: 0.97 }} transition={{ duration: 0.24, ease: "easeOut" }}>
+              <Box className="poster-loader-ring" />
+              <Typography variant="h6" sx={{ mt: 2 }}>正在生成分享海报</Typography>
+              <Typography color="text.secondary" sx={{ mt: 1.2 }}>请稍等片刻，海报会自动弹出预览。生成过程中你也可以按 ESC 关闭提示窗。</Typography>
+            </motion.div>
+          </motion.div>
+        ) : null}
       </AnimatePresence>
 
       {unlocked && (
@@ -1467,7 +1606,7 @@ export default function App() {
             </Box>
           </Box>
 
-          <Box className={toolboxOpen ? "floating-toolbox open" : "floating-toolbox"}>
+          <Box ref={toolboxRef} className={toolboxOpen ? "floating-toolbox open" : "floating-toolbox"}>
             <AnimatePresence>
               {toolboxOpen && (
                 <motion.div className="floating-toolbox-panel" initial={{ opacity: 0, y: 14, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.94 }} transition={{ duration: 0.2 }}>
@@ -1479,9 +1618,6 @@ export default function App() {
                   </Button>
                   <Button className={liked ? "toolbox-action active-like" : "toolbox-action"} variant="outlined" onClick={() => setLiked((current) => !current)} aria-label={liked ? "取消点赞" : "点赞"} title={liked ? "取消点赞" : "点赞"}>
                     <Heart size={18} fill={liked ? "currentColor" : "none"} />
-                  </Button>
-                  <Button className={bookmarked ? "toolbox-action active-bookmark" : "toolbox-action"} variant="outlined" onClick={handleBookmark} aria-label={bookmarked ? "取消收藏" : "收藏为书签"} title={bookmarked ? "取消收藏" : "收藏为书签"}>
-                    <BookMarked size={18} />
                   </Button>
                   <Button className={isGeneratingPoster ? "toolbox-action active-share" : "toolbox-action"} variant="outlined" onClick={generateSharePoster} aria-label="生成分享海报" title="生成分享海报" disabled={isGeneratingPoster}>
                     <Share2 size={18} />
