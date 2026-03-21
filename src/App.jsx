@@ -299,7 +299,7 @@ const artCuratorMetaPool = [
   "Moment Record",
 ];
 
-const ART_INITIAL_VISIBLE_COUNT = 8;
+const ART_INITIAL_VISIBLE_COUNT = 6;
 
 function HighlightText({ text }) {
   const pattern = new RegExp(`(${highlightTerms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
@@ -1243,4 +1243,18 @@ export default function App() {
                   <Button className={liked ? "toolbox-action active-like" : "toolbox-action"} variant="outlined" onClick={() => setLiked((current) => !current)} aria-label={liked ? "取消点赞" : "点赞"} title={liked ? "取消点赞" : "点赞"}>
                     <Heart size={18} fill={liked ? "currentColor" : "none"} />
                   </Button>
-                  
+                  <Button className={bookmarked ? "toolbox-action active-bookmark" : "toolbox-action"} variant="outlined" onClick={handleBookmark} aria-label={bookmarked ? "取消收藏" : "收藏为书签"} title={bookmarked ? "取消收藏" : "收藏为书签"}>
+                    <BookMarked size={18} />
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <Button className="toolbox-trigger" variant="contained" onClick={() => setToolboxOpen((current) => !current)} aria-label={toolboxOpen ? "收起工具箱" : "打开工具箱"} title={toolboxOpen ? "收起工具箱" : "打开工具箱"}>
+              <Wrench size={18} />
+            </Button>
+          </Box>
+        </>
+      )}
+    </Box>
+  );
+}
