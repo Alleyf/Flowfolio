@@ -5,12 +5,37 @@ import { RadarChart } from "echarts/charts";
 import { LegendComponent, RadarComponent, TooltipComponent } from "echarts/components";
 import { init, use as useEcharts } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ArrowUpRight, BookOpenText, BookMarked, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare, Wrench, X } from "lucide-react";
+import { ArrowUpRight, BookOpenText, BookMarked, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, Phone, Radar, School, Send, Sparkles, TerminalSquare, Wrench, X } from "lucide-react";
 import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, terminalConfig, topStats } from "./config/siteConfig";
 
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 const SLIDE_TRANSITION_MS = 820;
+
+const artPhotoModules = import.meta.glob("../public/art/**/*.webp", {
+  eager: true,
+  import: "default",
+});
+
+const artPhotoCategoryMap = Object.entries(artPhotoModules).reduce((accumulator, [path, src]) => {
+  const matched = path.match(/\/art\/([^/]+)\/[^/]+$/);
+  if (!matched) return accumulator;
+  const category = decodeURIComponent(matched[1]);
+  if (!accumulator[category]) accumulator[category] = [];
+  accumulator[category].push(src);
+  return accumulator;
+}, {});
+
+const artPhotoCategories = Object.entries(artPhotoCategoryMap)
+  .map(([name, photos]) => ({
+    name,
+    photos: photos.sort((left, right) => left.localeCompare(right, "zh-CN")),
+  }))
+  .sort((left, right) => left.name.localeCompare(right.name, "zh-CN"));
+
+function normalizeArtCategoryName(name) {
+  return name.replace(/[-_]+/g, " ").trim();
+}
 
 function HeroScene() {
   const ref = useRef(null);
@@ -232,6 +257,50 @@ const highlightTerms = [
   "渐进式重构",
 ];
 
+const artCopyPool = [
+  "光线不是背景，它是情绪的旁白。",
+  "每一次快门，都是和时间短暂握手。",
+  "城市在夜里更诚实，影子会替人说话。",
+  "风景不止在远方，也在你停下来的那一秒。",
+  "有些颜色会发声，只是需要慢一点看。",
+  "镜头收集的不是画面，是当天的呼吸。",
+  "当构图安静下来，故事就开始流动。",
+  "照片会老去，但被看见的瞬间不会。",
+  "光从边缘进入，记忆从细节开始。",
+  "按下快门前，我先听见了画面的节奏。",
+  "把噪点留下来，像给夜色留一段证词。",
+  "当人群走散，街角才开始发光。",
+  "焦外是沉默，焦内是回答。",
+  "远处的灯，不是目的地，是方向感。",
+  "有些瞬间不属于构图，只属于直觉。",
+  "风吹过来时，画面会自己站稳。",
+  "光影交叠的地方，最容易长出故事。",
+  "我把日常拍成了证据，把证据拍成了诗。",
+  "快门闭合的一刻，世界短暂地同意了我。",
+  "颜色先抵达情绪，然后才抵达眼睛。",
+  "比清晰更重要的，是这张照片想说什么。",
+  "每一帧都在提醒我：生活值得被认真看见。",
+  "镜头不是窗口，是与世界谈判的方式。",
+  "画面边缘的留白，刚好容纳想象。",
+  "我追逐的不是风景，是风景里的呼吸。",
+  "当光落在脸上，时间就有了形状。",
+  "拍摄让瞬间慢下来，也让记忆更准确。",
+  "你看到的是照片，我看到的是当时的温度。",
+  "每次对焦，都是一次选择与舍弃。",
+  "镜头向外，心却在向内生长。",
+];
+
+const artCuratorMetaPool = [
+  "Curator Note",
+  "Light Study",
+  "Street Archive",
+  "Color Field",
+  "Silent Frame",
+  "Moment Record",
+];
+
+const ART_INITIAL_VISIBLE_COUNT = 8;
+
 function HighlightText({ text }) {
   const pattern = new RegExp(`(${highlightTerms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
   const termSet = new Set(highlightTerms);
@@ -257,9 +326,14 @@ export default function App() {
   const [terminalHint, setTerminalHint] = useState(terminalConfig.hint);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [loadedIndexes, setLoadedIndexes] = useState(() => new Set([0, 1]));
+  const [loadedIndexes, setLoadedIndexes] = useState(() => new Set([0]));
   const [flippedProjects, setFlippedProjects] = useState({});
   const [portfolioIndex, setPortfolioIndex] = useState(0);
+  const [portfolioMode, setPortfolioMode] = useState("works");
+  const [artCategoryIndex, setArtCategoryIndex] = useState(0);
+  const [artPhotoIndex, setArtPhotoIndex] = useState(0);
+  const [artVisibleCount, setArtVisibleCount] = useState(ART_INITIAL_VISIBLE_COUNT);
+  const [artCopy, setArtCopy] = useState(artCopyPool[0]);
   const [showPortfolioPoster, setShowPortfolioPoster] = useState(false);
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [liked, setLiked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-liked") === "true" : false));
@@ -269,6 +343,10 @@ export default function App() {
   const touchStartY = useRef(null);
   const unlockTimerRef = useRef(null);
   const transitionTimerRef = useRef(null);
+  const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
+  const skillsSectionIndex = sectionMenus.findIndex((item) => item.id === "skills");
+  const projectsSectionIndex = sectionMenus.findIndex((item) => item.id === "projects");
+  const blogSectionIndex = sectionMenus.findIndex((item) => item.id === "blog");
 
   useEffect(() => {
     document.title = siteMeta.pageTitle;
@@ -283,9 +361,10 @@ export default function App() {
   }, [bookmarked]);
 
   useEffect(() => {
+    if (!unlocked || activeIndex < Math.max(1, portfolioSectionIndex - 1)) return;
     const image = new Image();
     image.src = siteMeta.portfolioPoster;
-  }, []);
+  }, [activeIndex, portfolioSectionIndex, unlocked]);
 
   useEffect(() => {
     if (!unlocked || typeof window === "undefined" || typeof window.gtag !== "function") return;
@@ -323,10 +402,9 @@ export default function App() {
       line += 1;
       char = 0;
       if (line >= bootLines.length) {
-        timer = window.setTimeout(() => {
-          preloadAround(0);
-          setUnlocked(true);
-        }, 700);
+          timer = window.setTimeout(() => {
+            setUnlocked(true);
+          }, 700);
         return;
       }
       timer = window.setTimeout(type, 110);
@@ -341,14 +419,34 @@ export default function App() {
     window.clearTimeout(transitionTimerRef.current);
   }, []);
 
-  const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
-  const skillsSectionIndex = sectionMenus.findIndex((item) => item.id === "skills");
-  const projectsSectionIndex = sectionMenus.findIndex((item) => item.id === "projects");
-  const blogSectionIndex = sectionMenus.findIndex((item) => item.id === "blog");
-
   useEffect(() => {
     setShowPortfolioPoster(activeIndex === portfolioSectionIndex);
   }, [activeIndex, portfolioSectionIndex]);
+
+  useEffect(() => {
+    setArtPhotoIndex(0);
+    setArtVisibleCount(ART_INITIAL_VISIBLE_COUNT);
+  }, [artCategoryIndex, portfolioMode]);
+
+  useEffect(() => {
+    if (portfolioMode !== "art" || !artPhotoCategories.length) return undefined;
+
+    const safeCategoryIndex = ((artCategoryIndex % artPhotoCategories.length) + artPhotoCategories.length) % artPhotoCategories.length;
+    const currentPhotos = artPhotoCategories[safeCategoryIndex]?.photos ?? [];
+    if (currentPhotos.length <= 1) return undefined;
+
+    const timer = window.setInterval(() => {
+      setArtPhotoIndex((current) => (current + 1) % currentPhotos.length);
+    }, 3500);
+
+    return () => window.clearInterval(timer);
+  }, [artCategoryIndex, portfolioMode]);
+
+  useEffect(() => {
+    if (portfolioMode !== "art") return;
+    const randomIndex = Math.floor(Math.random() * artCopyPool.length);
+    setArtCopy(artCopyPool[randomIndex]);
+  }, [portfolioMode, artCategoryIndex, artPhotoIndex]);
 
   const preloadAround = (index) => {
     setLoadedIndexes((current) => {
@@ -390,7 +488,27 @@ export default function App() {
     };
 
     const onKeyDown = (event) => {
-      if (["ArrowDown", "PageDown", " "].includes(event.key)) {
+      if (activeIndex === portfolioSectionIndex && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault();
+        if (portfolioMode === "works") {
+          setPortfolioIndex((current) => {
+            if (event.key === "ArrowLeft") return (current - 1 + portfolioWorks.length) % portfolioWorks.length;
+            return (current + 1) % portfolioWorks.length;
+          });
+          return;
+        }
+
+        if (!artPhotoCategories.length) return;
+
+        const safeCategoryIndex = ((artCategoryIndex % artPhotoCategories.length) + artPhotoCategories.length) % artPhotoCategories.length;
+        const currentPhotos = artPhotoCategories[safeCategoryIndex]?.photos ?? [];
+        if (!currentPhotos.length) return;
+
+        setArtPhotoIndex((current) => {
+          if (event.key === "ArrowLeft") return (current - 1 + currentPhotos.length) % currentPhotos.length;
+          return (current + 1) % currentPhotos.length;
+        });
+      } else if (["ArrowDown", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
         navigateTo(activeIndex + 1);
       } else if (["ArrowUp", "PageUp"].includes(event.key)) {
@@ -427,7 +545,7 @@ export default function App() {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [activeIndex, isTransitioning, unlocked]);
+  }, [activeIndex, artCategoryIndex, isTransitioning, portfolioMode, portfolioSectionIndex, unlocked]);
 
   const terminalCommandMap = useMemo(
     () => Object.fromEntries(terminalConfig.commands.map((item) => [item.name, item])),
@@ -466,13 +584,12 @@ export default function App() {
       if (matched.name === "help") setTerminalHint("已输出所有可用命令。");
       if (matched.name === "whoami") setTerminalHint("候选人摘要已输出。");
       if (matched.name === "contact") setTerminalHint("联系方式已输出。");
-      if (matched.action === "unlock") {
-        setTerminalHint("正在进入 Flowfolio。");
-        unlockTimerRef.current = window.setTimeout(() => {
-          preloadAround(0);
-          setUnlocked(true);
-        }, 500);
-      }
+        if (matched.action === "unlock") {
+          setTerminalHint("正在进入 Flowfolio。");
+          unlockTimerRef.current = window.setTimeout(() => {
+            setUnlocked(true);
+          }, 500);
+        }
     }
 
     setCommand("");
@@ -742,52 +859,174 @@ export default function App() {
       title: "作品矩阵",
       icon: <Sparkles size={18} />,
       render: () => {
+        const hasArtPhotos = artPhotoCategories.length > 0;
+        const safeArtCategoryIndex = hasArtPhotos ? ((artCategoryIndex % artPhotoCategories.length) + artPhotoCategories.length) % artPhotoCategories.length : 0;
+        const activeArtCategory = hasArtPhotos ? artPhotoCategories[safeArtCategoryIndex] : null;
+        const activeArtPhotos = activeArtCategory?.photos ?? [];
+        const visibleArtPhotos = activeArtPhotos.slice(0, artVisibleCount);
+        const canLoadMoreArtPhotos = activeArtPhotos.length > artVisibleCount;
+        const safeArtPhotoIndex = activeArtPhotos.length > 0 ? ((artPhotoIndex % activeArtPhotos.length) + activeArtPhotos.length) % activeArtPhotos.length : 0;
+        const artLeadPhoto = activeArtPhotos[safeArtPhotoIndex] ?? null;
+        const curatorMeta = artCuratorMetaPool[(safeArtCategoryIndex + safeArtPhotoIndex) % artCuratorMetaPool.length];
+        const frameCode = `ART-${String(safeArtCategoryIndex + 1).padStart(2, "0")}-${String(safeArtPhotoIndex + 1).padStart(2, "0")}`;
         const work = portfolioWorks[portfolioIndex];
         return (
           <Stack spacing={2.5}>
             <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={2}>
-              <Typography color="text.secondary">代码赋予灵魂---灵感化为现实</Typography>
-              <CarouselNav
-                onPrev={() => setPortfolioIndex((current) => (current - 1 + portfolioWorks.length) % portfolioWorks.length)}
-                onNext={() => setPortfolioIndex((current) => (current + 1) % portfolioWorks.length)}
-              />
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                <Chip
+                  icon={<Sparkles size={14} />}
+                  label="作品矩阵"
+                  onClick={() => setPortfolioMode("works")}
+                  className={portfolioMode === "works" ? "portfolio-mode-chip active" : "portfolio-mode-chip"}
+                />
+                <Chip
+                  icon={<Camera size={14} />}
+                  label="艺术矩阵"
+                  onClick={() => setPortfolioMode("art")}
+                  className={portfolioMode === "art" ? "portfolio-mode-chip active" : "portfolio-mode-chip"}
+                />
+              </Stack>
+              {portfolioMode === "works" ? (
+                <CarouselNav
+                  onPrev={() => setPortfolioIndex((current) => (current - 1 + portfolioWorks.length) % portfolioWorks.length)}
+                  onNext={() => setPortfolioIndex((current) => (current + 1) % portfolioWorks.length)}
+                />
+              ) : (
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Typography color="text.secondary">艺术源于生活而高于生活</Typography>
+                  {activeArtPhotos.length > 1 ? (
+                    <CarouselNav
+                      onPrev={() => setArtPhotoIndex((current) => (current - 1 + activeArtPhotos.length) % activeArtPhotos.length)}
+                      onNext={() => setArtPhotoIndex((current) => (current + 1) % activeArtPhotos.length)}
+                    />
+                  ) : null}
+                </Stack>
+              )}
             </Stack>
-            <motion.article key={work.title} initial={{ opacity: 0, x: 44 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
-              <Card className="glass-card portfolio-card">
-                <Grid container>
-                  <Grid size={{ xs: 12, md: 7 }}>
-                    <img src={work.image} alt={work.title} loading="lazy" className="portfolio-image portfolio-image-large" />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 5 }}>
-                    <CardContent className="portfolio-content">
-                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-                        <Box>
-                          <Typography variant="h4">{work.title}</Typography>
-                          <Typography color="text.secondary">{work.subtitle}</Typography>
-                        </Box>
-                        <Chip label={work.kind} size="small" />
+            {portfolioMode === "works" ? (
+              <>
+                <motion.article key={work.title} initial={{ opacity: 0, x: 44 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
+                  <Card className="glass-card portfolio-card">
+                    <Grid container>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <img src={work.image} alt={work.title} loading="lazy" className="portfolio-image portfolio-image-large" />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <CardContent className="portfolio-content">
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                            <Box>
+                              <Typography variant="h4">{work.title}</Typography>
+                              <Typography color="text.secondary">{work.subtitle}</Typography>
+                            </Box>
+                            <Chip label={work.kind} size="small" />
+                          </Stack>
+                          <Typography color="text.secondary" sx={{ mt: 1.6 }}>{work.summary}</Typography>
+                          <Stack component="ul" spacing={1.1} className="bullet-list compact">
+                            {work.highlights.map((item) => <Typography component="li" key={item} color="text.secondary">{item}</Typography>)}
+                          </Stack>
+                          <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
+                            {work.stack.map((tag) => <Chip key={tag} label={tag} size="small" variant="outlined" />)}
+                          </Stack>
+                          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 2.5 }}>
+                            <Button href={work.repo} target="_blank" rel="noreferrer" endIcon={<Github size={16} />}>GitHub</Button>
+                            {work.demo && <Button href={work.demo} target="_blank" rel="noreferrer" endIcon={<ExternalLink size={16} />}>在线演示</Button>}
+                          </Stack>
+                        </CardContent>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                </motion.article>
+                <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+                  {portfolioWorks.map((item, index) => (
+                    <Chip key={item.title} label={item.title} onClick={() => setPortfolioIndex(index)} className={index === portfolioIndex ? "portfolio-chip active" : "portfolio-chip"} />
+                  ))}
+                </Stack>
+              </>
+            ) : (
+              <motion.article key={activeArtCategory?.name || "art-empty"} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.42, ease: "easeOut" }}>
+                {hasArtPhotos ? (
+                  <Stack spacing={2}>
+                    <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+                      {artPhotoCategories.map((category, index) => (
+                        <Chip
+                          key={category.name}
+                          label={`${normalizeArtCategoryName(category.name)} · ${category.photos.length}`}
+                          onClick={() => setArtCategoryIndex(index)}
+                          className={index === safeArtCategoryIndex ? "portfolio-chip active" : "portfolio-chip"}
+                        />
+                      ))}
+                    </Stack>
+                    <Card className="glass-card portfolio-card art-matrix-shell">
+                      <Grid container>
+                        <Grid size={{ xs: 12, md: 7 }}>
+                          {artLeadPhoto ? <img src={artLeadPhoto} alt={normalizeArtCategoryName(activeArtCategory.name)} loading="lazy" className="portfolio-image portfolio-image-large art-lead-image" /> : null}
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 5 }}>
+                          <CardContent className="portfolio-content">
+                            <Typography variant="overline" className="art-matrix-kicker">Art Matrix / 艺术摄影</Typography>
+                            <Typography variant="h4">{normalizeArtCategoryName(activeArtCategory.name)}</Typography>
+                            <Box className="art-copy-block">
+                              <Stack direction="row" justifyContent="space-between" alignItems="center" className="art-copy-header">
+                                <Typography variant="caption" className="art-copy-label">随机艺术文案</Typography>
+                                <Typography variant="caption" className="art-copy-code">{frameCode}</Typography>
+                              </Stack>
+                              <Typography className="art-copy-text">{artCopy}</Typography>
+                              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" className="art-copy-meta">
+                                <Chip label={curatorMeta} size="small" variant="outlined" />
+                                <Chip label={`分类 ${safeArtCategoryIndex + 1}/${artPhotoCategories.length}`} size="small" variant="outlined" />
+                              </Stack>
+                            </Box>
+                            <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
+                              <Chip label={`总计 ${activeArtCategory.photos.length} 张`} size="small" variant="outlined" />
+                              {activeArtPhotos.length > 0 ? <Chip label={`第 ${safeArtPhotoIndex + 1} 张`} size="small" variant="outlined" /> : null}
+                            </Stack>
+                          </CardContent>
+                        </Grid>
+                      </Grid>
+                    </Card>
+                    <Box className="art-matrix-grid">
+                      {visibleArtPhotos.map((photo, index) => {
+                        return (
+                          <motion.figure
+                            key={`${activeArtCategory.name}-${photo}`}
+                            className={index === safeArtPhotoIndex ? "art-photo-tile active" : "art-photo-tile"}
+                            style={{ "--tile-tilt": `${((index % 3) - 1) * 0.35}deg` }}
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.28), ease: "easeOut" }}
+                            whileHover={{ y: -8, scale: 1.02 }}
+                            onMouseEnter={() => setArtPhotoIndex(index)}
+                            onFocus={() => setArtPhotoIndex(index)}
+                            onClick={() => setArtPhotoIndex(index)}
+                          >
+                            <img src={photo} alt={`${normalizeArtCategoryName(activeArtCategory.name)}-${index + 1}`} loading="lazy" className="art-photo-image" />
+                            <Box component="figcaption" className="art-photo-caption">FRAME {String(index + 1).padStart(2, "0")}</Box>
+                          </motion.figure>
+                        );
+                      })}
+                    </Box>
+                    {canLoadMoreArtPhotos ? (
+                      <Stack direction="row" justifyContent="center" sx={{ mt: 1.25 }}>
+                        <Button variant="outlined" onClick={() => setArtVisibleCount((current) => current + ART_INITIAL_VISIBLE_COUNT)}>
+                          加载更多（剩余 {activeArtPhotos.length - artVisibleCount} 张）
+                        </Button>
                       </Stack>
-                      <Typography color="text.secondary" sx={{ mt: 1.6 }}>{work.summary}</Typography>
-                      <Stack component="ul" spacing={1.1} className="bullet-list compact">
-                        {work.highlights.map((item) => <Typography component="li" key={item} color="text.secondary">{item}</Typography>)}
-                      </Stack>
-                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
-                        {work.stack.map((tag) => <Chip key={tag} label={tag} size="small" variant="outlined" />)}
-                      </Stack>
-                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 2.5 }}>
-                        <Button href={work.repo} target="_blank" rel="noreferrer" endIcon={<Github size={16} />}>GitHub</Button>
-                        {work.demo && <Button href={work.demo} target="_blank" rel="noreferrer" endIcon={<ExternalLink size={16} />}>在线演示</Button>}
-                      </Stack>
+                    ) : null}
+                  </Stack>
+                ) : (
+                  <Card className="glass-card portfolio-card">
+                    <CardContent>
+                      <Typography variant="h5">艺术矩阵尚未检测到作品</Typography>
+                      <Typography color="text.secondary" sx={{ mt: 1.5 }}>
+                        请将摄影作品放入 <code>/public/art/分类名/</code> 目录，例如：
+                        <code> /public/art/street/001.webp </code>。
+                      </Typography>
                     </CardContent>
-                  </Grid>
-                </Grid>
-              </Card>
-            </motion.article>
-            <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
-              {portfolioWorks.map((item, index) => (
-                <Chip key={item.title} label={item.title} onClick={() => setPortfolioIndex(index)} className={index === portfolioIndex ? "portfolio-chip active" : "portfolio-chip"} />
-              ))}
-            </Stack>
+                  </Card>
+                )}
+              </motion.article>
+            )}
           </Stack>
         );
       },
@@ -921,7 +1160,7 @@ export default function App() {
       </AppBar>
 
       <Box className="page-glow" />
-      <HeroScene />
+      {unlocked ? <HeroScene /> : null}
 
       <AnimatePresence>
         {unlocked && activeIndex === portfolioSectionIndex && showPortfolioPoster && (
@@ -1004,18 +1243,4 @@ export default function App() {
                   <Button className={liked ? "toolbox-action active-like" : "toolbox-action"} variant="outlined" onClick={() => setLiked((current) => !current)} aria-label={liked ? "取消点赞" : "点赞"} title={liked ? "取消点赞" : "点赞"}>
                     <Heart size={18} fill={liked ? "currentColor" : "none"} />
                   </Button>
-                  <Button className={bookmarked ? "toolbox-action active-bookmark" : "toolbox-action"} variant="outlined" onClick={handleBookmark} aria-label={bookmarked ? "取消收藏" : "收藏为书签"} title={bookmarked ? "取消收藏" : "收藏为书签"}>
-                    <BookMarked size={18} />
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <Button className="toolbox-trigger" variant="contained" onClick={() => setToolboxOpen((current) => !current)} aria-label={toolboxOpen ? "收起工具箱" : "打开工具箱"} title={toolboxOpen ? "收起工具箱" : "打开工具箱"}>
-              <Wrench size={18} />
-            </Button>
-          </Box>
-        </>
-      )}
-    </Box>
-  );
-}
+                  

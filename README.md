@@ -59,6 +59,12 @@
 ```text
 .
 ├── public/
+│   └── art/
+│       ├── street/
+│       │   ├── 001.webp
+│       │   └── 002.webp
+│       └── portrait/
+│           └── cover.jpg
 │   └── resume/
 │       ├── logo.webp
 │       ├── poster.webp
@@ -117,6 +123,13 @@ npm run preview
 - `PG Design.webp`
 - `VProOnline.webp`
 - `resume.pdf`: 简历附件
+
+艺术矩阵素材目录位于 `public/art/`：
+
+- 每个子文件夹代表一个摄影分类（文件夹名即分类名）
+- 支持格式：`png/jpg/jpeg/webp/gif/avif`
+- 示例：`public/art/street/001.webp`、`public/art/portrait/cover.jpg`
+- 前端会自动按分类聚合并在“作品矩阵”页切换到“艺术矩阵”时展示
 
 如果需要替换展示资源，优先修改 `src/config/siteConfig.js` 中对应路径。
 

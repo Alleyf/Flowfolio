@@ -177,7 +177,7 @@ button {
 .section-shell {
   height: 100%;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 4px;
   overscroll-behavior: contain;
 }
 
@@ -620,6 +620,177 @@ button {
   border-color: rgba(110, 242, 255, 0.34) !important;
 }
 
+.portfolio-mode-chip {
+  cursor: pointer;
+  border-color: rgba(110, 242, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.portfolio-mode-chip.active {
+  background: linear-gradient(135deg, rgba(110, 242, 255, 0.16), rgba(255, 184, 101, 0.14)) !important;
+  border-color: rgba(110, 242, 255, 0.4) !important;
+}
+
+.art-matrix-shell {
+  overflow: hidden;
+}
+
+.art-matrix-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(110, 242, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 92% 84%, rgba(255, 184, 101, 0.12), transparent 30%);
+  z-index: 0;
+}
+
+.art-matrix-shell .MuiGrid-container,
+.art-matrix-shell .MuiGrid-item,
+.art-matrix-shell .portfolio-content,
+.art-matrix-shell .portfolio-image {
+  position: relative;
+  z-index: 1;
+}
+
+.art-matrix-kicker {
+  color: var(--cyan);
+  letter-spacing: 0.08em;
+}
+
+.art-copy-block {
+  margin-top: 16px;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(110, 242, 255, 0.12), rgba(9, 22, 34, 0.9));
+  border: 1px solid rgba(110, 242, 255, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.art-copy-header {
+  gap: 8px;
+}
+
+.art-copy-code {
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #d7f7ff;
+  background: rgba(7, 20, 32, 0.72);
+  border: 1px solid rgba(110, 242, 255, 0.28);
+  letter-spacing: 0.08em;
+}
+
+.art-copy-label {
+  display: inline-block;
+  color: #bfefff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.art-copy-text {
+  margin-top: 8px !important;
+  color: #e8f8ff;
+  line-height: 1.8;
+  font-size: 0.98rem;
+}
+
+.art-copy-meta {
+  margin-top: 12px;
+}
+
+.art-copy-meta .MuiChip-root {
+  border-color: rgba(110, 242, 255, 0.24) !important;
+  background: rgba(8, 20, 30, 0.58) !important;
+}
+
+.art-lead-image {
+  object-fit: contain;
+  object-position: center;
+  background: rgba(3, 10, 16, 0.82);
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.art-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 12px;
+  perspective: 1200px;
+  align-items: stretch;
+}
+
+.art-photo-tile {
+  --tile-tilt: 0deg;
+  margin: 0;
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  transform: rotate(var(--tile-tilt));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(170deg, rgba(7, 17, 28, 0.92), rgba(4, 10, 18, 0.88));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+  transition: transform 0.26s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  aspect-ratio: 4 / 3;
+}
+
+.art-photo-tile.active {
+  transform: rotate(0deg) translateY(-3px);
+  border-color: rgba(110, 242, 255, 0.54);
+  box-shadow: 0 0 0 2px rgba(110, 242, 255, 0.2), 0 18px 48px rgba(0, 0, 0, 0.34);
+}
+
+.art-photo-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), transparent 30%, transparent 70%, rgba(110, 242, 255, 0.08));
+}
+
+.art-photo-tile::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(2, 8, 13, 0.78));
+  z-index: 1;
+}
+
+.art-photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.34s ease;
+}
+
+.art-photo-tile:hover .art-photo-image {
+  transform: scale(1.08);
+}
+
+.art-photo-tile:hover {
+  transform: rotate(0deg) translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.art-photo-caption {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  font-family: "Azeret Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #daf4ff;
+  opacity: 0.92;
+}
+
 .tweet-card-wrap {
   height: 100%;
 }
@@ -735,6 +906,16 @@ button {
   border-color: rgba(255, 184, 101, 0.35) !important;
 }
 
+@media (max-width: 1200px) {
+  .toolbar {
+    width: calc(100% - 24px);
+  }
+
+  .slide-shell {
+    padding-top: calc(var(--nav-height) + 48px);
+  }
+}
+
 .terminal-overlay {
   position: fixed;
   inset: 0;
@@ -824,15 +1005,86 @@ button {
     display: none !important;
   }
 
+  .slide-shell {
+    padding-top: calc(var(--nav-height) + 42px);
+    padding-bottom: 68px;
+  }
+
+  .section-shell {
+    padding-right: 0;
+  }
+
+  .floating-toolbox {
+    right: 14px;
+    bottom: 14px;
+  }
+
   .slide-status {
     width: calc(100% - 32px);
     justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .slide-status .MuiTypography-root {
+    font-size: 0.74rem;
+  }
+
+  .status-chip {
+    max-width: 58%;
   }
 }
 
 @media (max-width: 640px) {
+  .slides-viewport,
+  .slide-shell {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+
+  .slide-shell {
+    padding-top: calc(var(--nav-height) + 84px);
+    padding-bottom: 84px;
+  }
+
+  .slide-status {
+    top: calc(var(--nav-height) + 8px);
+  }
+
+  .slide-status .MuiTypography-root {
+    display: none;
+  }
+
   .toolbar {
     width: calc(100% - 20px);
+  }
+
+  .brand {
+    font-size: 0.95rem !important;
+    letter-spacing: 0.08em;
+  }
+
+  .hero-copy {
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+
+  .section-shell {
+    overflow-x: hidden;
+  }
+
+  .portfolio-content {
+    padding-bottom: 6px;
+  }
+
+  .art-copy-code {
+    font-size: 0.66rem;
+  }
+
+  .floating-toolbox {
+    right: 10px;
+    bottom: 10px;
+    gap: 8px;
   }
 
   .education-node {
@@ -906,6 +1158,21 @@ button {
   .flip-card,
   .flip-card-inner {
     min-height: 440px;
+  }
+
+  .art-matrix-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 8px;
+  }
+
+  .art-photo-tile {
+    transform: none;
+  }
+
+  .art-photo-tile.active,
+  .art-photo-tile:hover {
+    transform: translateY(-3px);
   }
 
 }

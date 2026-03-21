@@ -222,7 +222,7 @@ export const portfolioWorks = [
     kind: "Web App",
     repo: "https://github.com/Alleyf/Md2Slide",
     demo: "https://md2-slide.vercel.app",
-    image: "./resume/Md2Slide.gif",
+    image: "./resume/Md2Slide.webp",
     summary: "把 Markdown 内容快速转成带演示感和数学表达力的可视化幻灯片。",
     highlights: [
       "实时编辑预览，支持数学公式、代码高亮和媒体嵌入。",
