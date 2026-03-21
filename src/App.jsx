@@ -341,6 +341,7 @@ export default function App() {
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   const [sharePosterPreview, setSharePosterPreview] = useState(null);
   const [sharePosterGeneratedAt, setSharePosterGeneratedAt] = useState("");
+  const [busuanziStats, setBusuanziStats] = useState({ pv: "--", uv: "--" });
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
@@ -387,6 +388,40 @@ export default function App() {
       page_location: pageLocation,
     });
   }, [activeIndex, unlocked]);
+
+  useEffect(() => {
+    if (!unlocked || typeof window === "undefined") return undefined;
+
+    let disposed = false;
+    const refreshBusuanzi = async () => {
+      try {
+        const url = `${window.location.origin}${window.location.pathname}`;
+        const response = await fetch("https://cdn.busuanzi.cc/api.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, referrer: document.referrer || "" }),
+        });
+        if (!response.ok) throw new Error(`busuanzi http ${response.status}`);
+        const data = await response.json();
+
+        if (disposed) return;
+        const next = {
+          pv: data.busuanzi_value_site_pv != null ? String(data.busuanzi_value_site_pv) : "--",
+          uv: data.busuanzi_value_site_uv != null ? String(data.busuanzi_value_site_uv) : "--",
+        };
+        setBusuanziStats(next);
+      } catch (error) {
+        console.error("busuanzi refresh failed", error);
+      }
+    };
+
+    refreshBusuanzi();
+    const timer = window.setInterval(refreshBusuanzi, 60000);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+    };
+  }, [unlocked]);
 
   useEffect(() => {
     let line = 0;
@@ -1285,11 +1320,11 @@ export default function App() {
           <Box className="site-copyright">
             <Typography variant="caption" color="text.secondary">
               © {siteMeta.copyrightRange} {siteMeta.copyrightOwner}. All rights reserved.
-              <Box component="span" id="busuanzi_container_site_pv" className="site-counter">
-                {" · "}PV <Box component="span" id="busuanzi_value_site_pv" />
+              <Box component="span" className="site-counter">
+                {" · "}PV {busuanziStats.pv}
               </Box>
-              <Box component="span" id="busuanzi_container_site_uv" className="site-counter">
-                {" · "}UV <Box component="span" id="busuanzi_value_site_uv" />
+              <Box component="span" className="site-counter">
+                {" · "}UV {busuanziStats.uv}
               </Box>
             </Typography>
           </Box>
@@ -1455,6 +1490,10 @@ export default function App() {
             <Button className="toolbox-trigger" variant="contained" onClick={() => setToolboxOpen((current) => !current)} aria-label={toolboxOpen ? "收起工具箱" : "打开工具箱"} title={toolboxOpen ? "收起工具箱" : "打开工具箱"}>
               <Wrench size={18} />
             </Button>
+          </Box>
+
+          <Box className="site-counter-fixed" aria-label="站点访问统计">
+            <Typography variant="caption">PV {busuanziStats.pv} · UV {busuanziStats.uv}</Typography>
           </Box>
         </>
       )}
