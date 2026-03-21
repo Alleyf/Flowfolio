@@ -1429,7 +1429,7 @@ export default function App() {
                     <TextField label="你的邮箱" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} fullWidth />
                     <TextField label="邮件主题" value={form.subject} onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))} fullWidth />
                     <TextField label="消息内容" multiline minRows={5} value={form.message} onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))} fullWidth />
-                    <Button variant="contained" startIcon={<Send size={18} />} onClick={sendMessage}>发送消息到 {contactConfig.inboxEmail}</Button>
+                    <Button variant="contained" startIcon={<Send size={18} />} onClick={sendMessage}>发送消息</Button>
                   </Stack>
                 </CardContent>
               </Card>

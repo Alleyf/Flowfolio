@@ -72,7 +72,7 @@ export const terminalConfig = {
     {
       name: "contact",
       description: "输出联系方式",
-      output: ["mail: alleyf@csdcinfo.cn", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
+      output: ["mail: alleyf@qq.com", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
     },
     {
       name: "clear",
@@ -101,7 +101,7 @@ export const sectionMenus = [
 ];
 
 export const topStats = [
-  { label: "主栈", value: "Java / Spring / AI" },
+  { label: "主栈", value: "Java / Spring" },
   { label: "工程化", value: "DevOps / Kubernetes" },
   { label: "方向", value: "AI Agent / AI Infra" },
 ];
@@ -115,7 +115,7 @@ export const digitalIdentity = {
     { label: "学校", value: "华中科技大学" },
     { label: "学历", value: "硕士" },
     { label: "专业", value: "信息与通信工程" },
-    { label: "邮箱", value: "alleyf@csdcinfo.cn" },
+    { label: "邮箱", value: "alleyf@qq.com" },
     { label: "博客", value: "alleyf.github.io" },
     { label: "状态", value: "找实习ing" },
   ],
@@ -175,7 +175,7 @@ export const projectExperiences = [
     status: "Live",
     role: "项目负责人 / 后端研发",
     url: "https://jp.liyunol.com",
-    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活1W+，并发1W+。",
+    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活1W+，并发5K+。",
     bullets: [
       "基于 Spring Cloud Alibaba 搭建微服务体系，覆盖学习、培训与管理流程。",
       "围绕高并发场景设计缓存、异步解耦和服务治理能力。",
@@ -192,7 +192,7 @@ export const projectExperiences = [
     external: false,
     description: "对实验室的私有云平台与业务中枢事务工作进行统筹安排、分工协作、技术指导和维护管理等工作。",
     bullets: [
-      "规划、部署并维护 40 节点私有云基础设施与容器平台。",
+      "规划、部署并维护 40 个节点的私有云基础设施与容器平台。",
       "基于 Kubernetes、Rancher 与 Harbor 建立规范化交付链路。",
       "持续推进性能优化、安全加固与高可用设计。",
     ],
@@ -227,7 +227,7 @@ export const portfolioWorks = [
     highlights: [
       "实时编辑预览，支持数学公式、代码高亮和媒体嵌入。",
       "支持 click-to-reveal、过渡动画、主题切换与部署链路。",
-      "更适合放进内容生产工具型作品矩阵。",
+      "创意汇报演示生产力工具。",
     ],
     stack: ["React", "TypeScript", "Vite", "Remotion"],
   },
@@ -269,7 +269,7 @@ export const portfolioWorks = [
     highlights: [
       "支持多格式转换、尺寸调整、音频提取和处理结果下载。",
       "后端以 Express + FFmpeg 为核心，体现多媒体处理工程能力。",
-      "README 已给出本地启动、Vercel 部署和完整操作流程。",
+      "响应式设计，适配各种设备、支持 Vercel 部署和完整操作流程。",
     ],
     stack: ["Node.js", "Express", "FFmpeg", "HTML/CSS/JS"],
   },
@@ -311,8 +311,8 @@ export const blogPosts = [
 ];
 
 export const contactConfig = {
-  email: "alleyf@csdcinfo.cn",
-  inboxEmail: "alleyf@csdcinfo.cn",
+  email: "alleyf@qq.com",
+  inboxEmail: "alleyf@qq.com",
   github: "https://github.com/Alleyf",
   blog: "https://alleyf.github.io/",
   phone: "19223276194",
