@@ -1,14 +1,22 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CRQCQ3FR1R"></script>
+    <!-- Google tag (gtag.js) - disabled on non-production hosts to avoid invalid-domain cookie warnings -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      (function () {
+        var allowedHosts = ["alleyf.github.io"];
+        if (!allowedHosts.includes(window.location.hostname)) return;
+        var script = document.createElement("script");
+        script.async = true;
+        script.src = "https://www.googletagmanager.com/gtag/js?id=G-CRQCQ3FR1R";
+        document.head.appendChild(script);
 
-      gtag('config', 'G-CRQCQ3FR1R', { send_page_view: false });
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag("js", new Date());
+        gtag("config", "G-CRQCQ3FR1R", { send_page_view: false });
+      })();
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

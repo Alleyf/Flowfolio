@@ -405,9 +405,11 @@ export default function App() {
         const data = await response.json();
 
         if (disposed) return;
+        const pvValue = data.busuanzi_site_pv ?? data.busuanzi_value_site_pv;
+        const uvValue = data.busuanzi_site_uv ?? data.busuanzi_value_site_uv;
         const next = {
-          pv: data.busuanzi_value_site_pv != null ? String(data.busuanzi_value_site_pv) : "--",
-          uv: data.busuanzi_value_site_uv != null ? String(data.busuanzi_value_site_uv) : "--",
+          pv: pvValue != null ? String(pvValue) : "--",
+          uv: uvValue != null ? String(uvValue) : "--",
         };
         setBusuanziStats(next);
       } catch (error) {
