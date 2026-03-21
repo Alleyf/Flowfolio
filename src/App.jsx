@@ -11,6 +11,7 @@ import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, pe
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 const SLIDE_TRANSITION_MS = 820;
+const PUBLIC_BASE_URL = (import.meta.env.BASE_URL || "/").replace(/\/?$/, "/");
 
 const artPhotoModules = import.meta.glob("../public/art/**/*.webp");
 
@@ -19,7 +20,7 @@ const artPhotoCategoryMap = Object.keys(artPhotoModules).reduce((accumulator, pa
   if (!matched) return accumulator;
   const category = decodeURIComponent(matched[1]);
   if (!accumulator[category]) accumulator[category] = [];
-  accumulator[category].push(path.replace("../public", ""));
+  accumulator[category].push(`${PUBLIC_BASE_URL}${path.replace("../public/", "")}`);
   return accumulator;
 }, {});
 
