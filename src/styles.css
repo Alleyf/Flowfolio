@@ -102,6 +102,17 @@ button {
   white-space: nowrap;
 }
 
+.resume-download-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resume-download-stats {
+  white-space: nowrap;
+  font-family: var(--font-mono) !important;
+}
+
 .brand,
 .period-label,
 .terminal-title,
@@ -1433,6 +1444,10 @@ button {
 
   .mobile-resume-download {
     display: inline-flex !important;
+  }
+
+  .resume-download-stats {
+    display: none !important;
   }
 
   .slide-shell {

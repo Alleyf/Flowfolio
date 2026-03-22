@@ -12,6 +12,27 @@ useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, Canva
 
 const SLIDE_TRANSITION_MS = 820;
 const PUBLIC_BASE_URL = (import.meta.env.BASE_URL || "/").replace(/\/?$/, "/");
+const BUSUANZI_API_ENDPOINT = "https://cdn.busuanzi.cc/api.php";
+
+function toBusuanziStats(data) {
+  const pvValue = data.busuanzi_site_pv ?? data.busuanzi_value_site_pv;
+  const uvValue = data.busuanzi_site_uv ?? data.busuanzi_value_site_uv;
+  return {
+    pv: pvValue != null ? String(pvValue) : "--",
+    uv: uvValue != null ? String(uvValue) : "--",
+  };
+}
+
+async function fetchBusuanziStats(url, referrer = "") {
+  const response = await fetch(BUSUANZI_API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, referrer }),
+  });
+  if (!response.ok) throw new Error(`busuanzi http ${response.status}`);
+  const data = await response.json();
+  return toBusuanziStats(data);
+}
 
 const artPhotoModules = import.meta.glob("../public/art/**/*.webp");
 
@@ -383,6 +404,7 @@ export default function App() {
   const [sharePosterGeneratedAt, setSharePosterGeneratedAt] = useState("");
   const [showPosterGeneratingModal, setShowPosterGeneratingModal] = useState(false);
   const [busuanziStats, setBusuanziStats] = useState({ pv: "--", uv: "--" });
+  const [resumeDownloadStats, setResumeDownloadStats] = useState({ pv: "--", uv: "--" });
   const [themeMode, setThemeMode] = useState(() => {
     if (typeof window === "undefined") return "dark";
     const saved = window.localStorage.getItem("flowfolio-theme-mode");
@@ -486,24 +508,11 @@ export default function App() {
     if (!unlocked || typeof window === "undefined") return undefined;
 
     let disposed = false;
+    const pageUrl = `${window.location.origin}${window.location.pathname}`;
     const refreshBusuanzi = async () => {
       try {
-        const url = `${window.location.origin}${window.location.pathname}`;
-        const response = await fetch("https://cdn.busuanzi.cc/api.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, referrer: document.referrer || "" }),
-        });
-        if (!response.ok) throw new Error(`busuanzi http ${response.status}`);
-        const data = await response.json();
-
+        const next = await fetchBusuanziStats(pageUrl, document.referrer || "");
         if (disposed) return;
-        const pvValue = data.busuanzi_site_pv ?? data.busuanzi_value_site_pv;
-        const uvValue = data.busuanzi_site_uv ?? data.busuanzi_value_site_uv;
-        const next = {
-          pv: pvValue != null ? String(pvValue) : "--",
-          uv: uvValue != null ? String(uvValue) : "--",
-        };
         setBusuanziStats(next);
       } catch (error) {
         console.error("busuanzi refresh failed", error);
@@ -970,6 +979,25 @@ export default function App() {
       return null;
     });
     setSharePosterGeneratedAt("");
+  };
+
+  const handleResumeDownload = () => {
+    if (typeof window === "undefined") return;
+
+    const pageUrl = `${window.location.origin}${window.location.pathname}`;
+    const metricUrl = `${pageUrl}?metric=resume-download`;
+    const eventProps = { file_name: "resume.pdf", source: "header" };
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "resume_download", eventProps);
+    }
+    if (typeof window.umami?.track === "function") {
+      window.umami.track("resume_download", eventProps);
+    }
+
+    fetchBusuanziStats(metricUrl, pageUrl)
+      .then((next) => setResumeDownloadStats(next))
+      .catch((error) => console.error("resume download stats failed", error));
   };
 
   const sectionNodes = [
@@ -1455,6 +1483,12 @@ export default function App() {
               <Box component="span" className="site-counter">
                 {" · "}UV {busuanziStats.uv}
               </Box>
+              <Box component="span" className="site-counter">
+                {" · "}下载PV {resumeDownloadStats.pv}
+              </Box>
+              <Box component="span" className="site-counter">
+                {" · "}下载UV {resumeDownloadStats.uv}
+              </Box>
             </Typography>
           </Box>
         </Stack>
@@ -1502,8 +1536,10 @@ export default function App() {
               </Button>
             ))}
           </Stack>
-          <Button href={resumeDownloadPath} download variant="contained" startIcon={<Download size={18} />} className="desktop-resume-download">下载简历</Button>
-          <Button href={resumeDownloadPath} download variant="contained" startIcon={<Download size={16} />} size="small" className="mobile-resume-download">简历</Button>
+          <Box className="resume-download-group">
+            <Button href={resumeDownloadPath} download onClick={handleResumeDownload} variant="contained" startIcon={<Download size={18} />} className="desktop-resume-download">下载简历</Button>
+            <Button href={resumeDownloadPath} download onClick={handleResumeDownload} variant="contained" startIcon={<Download size={16} />} size="small" className="mobile-resume-download">简历</Button>
+          </Box>
         </Box>
       </AppBar>
 
