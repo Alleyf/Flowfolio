@@ -42,10 +42,11 @@ export const siteMeta = {
   copyrightOwner: "CsFan",
   footerTitle: "CsFan · Flowfolio",
   footerNote: "感谢浏览，欢迎通过邮箱、GitHub 或博客进一步了解我的项目与技术沉淀。",
-  portfolioPoster: "./resume/poster.webp",
+  portfolioPoster: "./doc/poster.webp",
+  contribution: "./doc/contribution.png",
 };
 
-export const resumeDownloadPath = "./resume/resume.pdf";
+export const resumeDownloadPath = "./doc/resume.pdf";
 
 export const terminalConfig = {
   prompt: "visitor@recruiter:~$",
@@ -109,7 +110,7 @@ export const topStats = [
 export const digitalIdentity = {
   name: "CsFan",
   role: "Java 全栈工程师 / AI 应用开发工程师",
-  avatar: "./resume/avatar.webp",
+  avatar: "./doc/avatar.webp",
   avatarFallback: "F",
   fields: [
     { label: "学校", value: "华中科技大学" },
@@ -127,7 +128,7 @@ export const educationList = [
     title: "华中科技大学 · 信息与通信工程-硕士",
     school: "华中科技大学",
     schoolUrl: "https://www.hust.edu.cn/",
-    logo: "./resume/hust_logo.svg",
+    logo: "./doc/hust_logo.svg",
     tiers: ["985", "211", "双一流"],
     body: "推荐免试研究生，持续把通信工程背景和软件工程实践结合，重点关注工程系统设计、平台能力建设与 AI 工具落地。",
     chips: ["中国研究生创“芯”大赛 · EDA 精英挑战赛全国三等奖", "研究生一等学业奖学金"],
@@ -138,7 +139,7 @@ export const educationList = [
     title: "武汉理工大学 · 通信工程-本科",
     school: "武汉理工大学",
     schoolUrl: "https://www.whut.edu.cn/",
-    logo: "./resume/whut_logo.svg",
+    logo: "./doc/whut_logo.svg",
     tiers: ["211", "双一流"],
     body: "专业前 15%，获得保研资格。本科阶段在课程学习、竞赛获奖、项目实践和综合素质评定上持续保持稳定输出。",
     chips: ["计算机设计大赛全国二等奖", "服务外包大赛全国三等奖", "华为社会奖学金", "三好学生标兵", "优秀毕业生"],
@@ -222,7 +223,7 @@ export const portfolioWorks = [
     kind: "Web App",
     repo: "https://github.com/Alleyf/Md2Slide",
     demo: "https://md2-slide.vercel.app",
-    image: "./resume/Md2Slide.webp",
+    image: "./doc/Md2Slide.webp",
     summary: "把 Markdown 内容快速转成带演示感和数学表达力的可视化幻灯片。",
     highlights: [
       "实时编辑预览，支持数学公式、代码高亮和媒体嵌入。",
@@ -236,7 +237,7 @@ export const portfolioWorks = [
     subtitle: "桌面后台命令管理器",
     kind: "Desktop",
     repo: "https://github.com/Alleyf/CommandHub",
-    image: "./resume/CommandHub.webp",
+    image: "./doc/CommandHub.webp",
     summary: "用一个桌面界面统一管理本地常驻命令、进程状态和日志输出。",
     highlights: [
       "提供命令清单、进程巡视、日志尾部查看和运行状态追踪。",
@@ -250,7 +251,7 @@ export const portfolioWorks = [
     subtitle: "摄影设计项目管理平台",
     kind: "Vertical SaaS",
     repo: "https://github.com/Alleyf/pg-design",
-    image: "./resume/PG Design.webp",
+    image: "./doc/PG Design.webp",
     summary: "面向摄影师、设计师和创意团队的项目管理系统，强调垂直业务流程。",
     highlights: [
       "覆盖项目状态、预算分类、客户管理、团队协作和任务推进。",
@@ -264,7 +265,7 @@ export const portfolioWorks = [
     subtitle: "在线视频上传、处理与分享平台",
     kind: "Media Tool",
     repo: "https://github.com/Alleyf/VProOnline",
-    image: "./resume/VProOnline.webp",
+    image: "./doc/VProOnline.webp",
     summary: "基于 Node.js 的视频处理平台，覆盖上传、压缩、转码、裁剪和下载。",
     highlights: [
       "支持多格式转换、尺寸调整、音频提取和处理结果下载。",

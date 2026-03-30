@@ -1062,6 +1062,42 @@ export default function App() {
               </CardContent>
             </Card>
           </Grid>
+          <Grid size={{ xs: 12 }}>
+            <Card className="glass-card contribution-panel">
+              <CardContent>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                  <Box>
+                    <Typography variant="overline">Activity</Typography>
+                    <Typography variant="h5">贡献热力图</Typography>
+                  </Box>
+                  <Github size={20} color="rgba(255,255,255,0.6)" />
+                </Stack>
+                <Box sx={{ 
+                  width: "100%", 
+                  overflowX: "auto", 
+                  borderRadius: 1.5, 
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(0,0,0,0.2)",
+                  p: 2,
+                  "&::-webkit-scrollbar": { height: 6 },
+                  "&::-webkit-scrollbar-thumb": { background: "rgba(255,255,255,0.1)", borderRadius: 3 }
+                }}>
+                  <img 
+                    src={siteMeta.contribution} 
+                    alt="Github Contributions" 
+                    style={{ 
+                      minWidth: "800px",
+                      width: "100%",
+                      height: "auto",
+                      display: "block",
+                      filter: "brightness(0.9) contrast(1.1)",
+                      objectFit: "contain"
+                    }} 
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
       ),
     },
@@ -1482,12 +1518,6 @@ export default function App() {
               </Box>
               <Box component="span" className="site-counter">
                 {" · "}UV {busuanziStats.uv}
-              </Box>
-              <Box component="span" className="site-counter">
-                {" · "}下载PV {resumeDownloadStats.pv}
-              </Box>
-              <Box component="span" className="site-counter">
-                {" · "}下载UV {resumeDownloadStats.uv}
               </Box>
             </Typography>
           </Box>

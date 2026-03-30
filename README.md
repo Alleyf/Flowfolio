@@ -1,7 +1,7 @@
 # Flowfolio
 
 <p align="center">
-  <img src="./public/resume/logo.webp" alt="Flowfolio Logo" width="180" />
+  <img src="./public/doc/logo.webp" alt="Flowfolio Logo" width="180" />
 </p>
 
 <p align="center">
@@ -24,25 +24,25 @@
 
 ## 海报总览
 
-![作品集海报](./public/resume/poster.webp)
+![作品集海报](./public/doc/poster.webp)
 
 ## 页面预览
 
 #### Md2Slide
 
-![Md2Slide](./public/resume/Md2Slide.webp)
+![Md2Slide](./public/doc/Md2Slide.webp)
 
 #### CommandHub
 
-![CommandHub](./public/resume/CommandHub.webp)
+![CommandHub](./public/doc/CommandHub.webp)
 
 #### PG Design
 
-![PG Design](./public/resume/PG%20Design.webp)
+![PG Design](./public/doc/PG%20Design.webp)
 
 #### VProOnline
 
-![VProOnline](./public/resume/VProOnline.webp)
+![VProOnline](./public/doc/VProOnline.webp)
 
 ## 技术栈
 
@@ -65,7 +65,7 @@
 │       │   └── 002.webp
 │       └── portrait/
 │           └── cover.jpg
-│   └── resume/
+│   └── doc/
 │       ├── logo.webp
 │       ├── poster.webp
 │       ├── avatar.webp
@@ -113,7 +113,7 @@ npm run preview
 
 ## 静态资源说明
 
-项目中的主要展示素材位于 `public/resume/`：
+项目中的主要展示素材位于 `public/doc/`：
 
 - `logo.webp`: 站点 logo
 - `poster.webp`: 作品集总览海报
