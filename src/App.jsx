@@ -1329,8 +1329,9 @@ export default function App() {
                             {work.stack.map((tag) => <Chip key={tag} label={tag} size="small" variant="outlined" />)}
                           </Stack>
                           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 2.5 }}>
-                            <Button href={work.repo} target="_blank" rel="noreferrer" endIcon={<Github size={16} />}>GitHub</Button>
-                            {work.demo && <Button href={work.demo} target="_blank" rel="noreferrer" endIcon={<ExternalLink size={16} />}>在线演示</Button>}
+                            <Button component="a" href={work.repo} target="_blank" rel="noreferrer" variant="outlined" size="small" startIcon={<Github size={16} />}>GitHub</Button>
+                            {work.downloadUrl && <Button component="a" href={work.downloadUrl} target="_blank" rel="noreferrer" variant="outlined" size="small" startIcon={<Download size={16} />}>下载安装</Button>}
+                            {work.demo && <Button component="a" href={work.demo} target="_blank" rel="noreferrer" variant="contained" size="small" endIcon={<ExternalLink size={16} />}>在线 Demo</Button>}
                           </Stack>
                         </CardContent>
                       </Grid>

@@ -237,6 +237,7 @@ export const portfolioWorks = [
     subtitle: "桌面后台命令管理器",
     kind: "Desktop",
     repo: "https://github.com/Alleyf/CommandHub",
+    downloadUrl: "https://github.com/Alleyf/CommandHub/releases/tag/v0.5.0",
     image: "./doc/CommandHub.webp",
     summary: "用一个桌面界面统一管理本地常驻命令、进程状态和日志输出。",
     highlights: [
