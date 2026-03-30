@@ -814,6 +814,16 @@ export default function App() {
 
     const shareUrl = "https://alleyf.github.io/Flowfolio";
     const generatedAt = new Date().toLocaleString("zh-CN", { hour12: false });
+    let ipInfo = { query: "", country: "", city: "" };
+    try {
+      const ipResponse = await fetch("http://ip-api.com/json/?lang=zh-CN");
+      if (ipResponse.ok) {
+        ipInfo = await ipResponse.json();
+      }
+    } catch (e) {
+      console.warn("IP address fetch failed, skipping.", e);
+    }
+
     const posterWidth = 1080;
     const posterHeight = 1620;
     const canvas = document.createElement("canvas");
@@ -914,6 +924,10 @@ export default function App() {
       context.fillStyle = "#7fa3bb";
       context.font = "500 24px 'Azeret Mono', 'Noto Sans SC', sans-serif";
       context.fillText(`Generated at: ${generatedAt}`, 124, 1360);
+      if (ipInfo.query) {
+        const ipLine = `Visitor IP: ${ipInfo.query} (${ipInfo.country} ${ipInfo.city})`;
+        context.fillText(ipLine, 124, 1392);
+      }
 
       context.fillStyle = "#6ef2ff";
       context.font = "700 24px 'Azeret Mono', 'Noto Sans SC', sans-serif";
