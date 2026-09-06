@@ -29,42 +29,47 @@ const FADE_OUT = 0.22; // outgoing scene dissolve zone (exits fast, blurred)
 const FADE_IN = 0.34; // incoming scene arrival zone (starts late)
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-/* Agent ReAct Loop — shown as a global ambient badge + a WebGL orbit
-   ring in SceneCanvas. The badge cycles the four workflow steps. */
+/* Agent ReAct Loop — the loop itself is drawn entirely with particles
+   in the WebGL stage (pinned to the screen-center backdrop, see
+   SceneCanvas). Only a tiny phase tag lives in the bottom chrome,
+   synced with the comet head via the same performance.now clock. */
 const LOOP_STEPS = [
-  { key: "thought", label: "Thought", hint: "拆解目标与约束，规划下一步要做什么。" },
-  { key: "action", label: "Action", hint: "调度 Skill / MCP / Plugin，执行工具调用。" },
-  { key: "observation", label: "Observation", hint: "回收工具返回，校验结果是否可信。" },
-  { key: "reflection", label: "Reflection", hint: "复盘并修正计划，进入下一轮循环。" },
+  { key: "thought", label: "THOUGHT" },
+  { key: "action", label: "ACTION" },
+  { key: "observation", label: "OBSERVATION" },
+  { key: "reflection", label: "REFLECTION" },
 ];
+const LOOP_STEP_MS = 1900; // one ReAct step — matches SceneCanvas LOOP_PERIOD / 4
 
-function ReactLoopBadge() {
+function useReactStep() {
   const [step, setStep] = useState(0);
-
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (document.hidden) return;
-      setStep((current) => (current + 1) % LOOP_STEPS.length);
-    }, 1900);
+      setStep(Math.floor(performance.now() / LOOP_STEP_MS) % LOOP_STEPS.length);
+    }, 400);
     return () => window.clearInterval(timer);
   }, []);
+  return step;
+}
 
-  return (
-    <div className="react-loop-badge mono" aria-hidden="true">
-      <div className="rlb-row">
-        <i className="rl-pulse" />
-        <span className="rlb-title">AGENT REACT LOOP</span>
-        <span className="rlb-track">
-          {LOOP_STEPS.map((item, index) => (
-            <span key={item.key} className={index === step ? "rlb-node on" : "rlb-node"}>
-              {item.label}
-            </span>
-          ))}
-        </span>
-      </div>
-      <p className="rlb-hint">{LOOP_STEPS[step].hint}</p>
-    </div>
-  );
+/* ------------------- busuanzi site counters (PV/UV) ------------------- */
+const BUSUANZI_API_ENDPOINT = "https://cdn.busuanzi.cc/api.php";
+
+async function fetchBusuanziStats(url, referrer = "") {
+  const response = await fetch(BUSUANZI_API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, referrer }),
+  });
+  if (!response.ok) throw new Error(`busuanzi http ${response.status}`);
+  const data = await response.json();
+  const pvValue = data.busuanzi_site_pv ?? data.busuanzi_value_site_pv;
+  const uvValue = data.busuanzi_site_uv ?? data.busuanzi_value_site_uv;
+  return {
+    pv: pvValue != null ? String(pvValue) : "--",
+    uv: uvValue != null ? String(uvValue) : "--",
+  };
 }
 
 export default function CinematicApp() {
@@ -84,6 +89,10 @@ export default function CinematicApp() {
   const [poster, setPoster] = useState(null);
   const [posterBusy, setPosterBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  /* site counters (busuanzi PV / UV) */
+  const [busuanziStats, setBusuanziStats] = useState({ pv: "--", uv: "--" });
+  const reactStep = useReactStep();
 
   const sceneElsRef = useRef([]); // scene root elements
   const rvRef = useRef({}); // sceneIdx -> [{el, th}]
@@ -257,6 +266,28 @@ export default function CinematicApp() {
 
   useEffect(() => {
     bootedRef.current = booted;
+  }, [booted]);
+
+  /* ---------------------- busuanzi PV / UV -------------------------- */
+  useEffect(() => {
+    if (!booted || typeof window === "undefined") return undefined;
+    let disposed = false;
+    const pageUrl = `${window.location.origin}${window.location.pathname}`;
+    const refreshBusuanzi = async () => {
+      try {
+        const next = await fetchBusuanziStats(pageUrl, document.referrer || "");
+        if (disposed) return;
+        setBusuanziStats(next);
+      } catch (error) {
+        console.error("busuanzi refresh failed", error);
+      }
+    };
+    refreshBusuanzi();
+    const timer = window.setInterval(refreshBusuanzi, 60000);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+    };
   }, [booted]);
 
   /* ------------------------- share poster -------------------------- */
@@ -495,8 +526,18 @@ export default function CinematicApp() {
         <span className="scene-label">
           <b>{String(active + 1).padStart(2, "0")}</b> / {activeScene.en} · {activeScene.cn}
         </span>
-        <span className="scroll-hint">
-          SCROLL TO EXPLORE <i className="hint-wheel" aria-hidden="true" />
+        {booted && (
+          <span className="react-phase" aria-hidden="true">
+            REACT · <b>{LOOP_STEPS[reactStep].label}</b>
+          </span>
+        )}
+        <span className="bottom-right">
+          <span className="site-stats">
+            PV {busuanziStats.pv} · UV {busuanziStats.uv}
+          </span>
+          <span className="scroll-hint">
+            SCROLL TO EXPLORE <i className="hint-wheel" aria-hidden="true" />
+          </span>
         </span>
       </footer>
 
@@ -551,8 +592,7 @@ export default function CinematicApp() {
         </div>
       )}
 
-      {/* global ambient: agent react loop cycling in the background */}
-      {booted && <ReactLoopBadge />}
+      {/* the ReAct loop itself is particle-drawn in the WebGL stage center */}
 
       <div className="grain" aria-hidden="true" />
       <Cursor />

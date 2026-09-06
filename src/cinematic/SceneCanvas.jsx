@@ -198,6 +198,48 @@ function makeDustSprite() {
   return tex;
 }
 
+/* --- ReAct loop shaders: every element (ring / phase nodes / comet
+       head) is a particle; active phase node brightens via uActive --- */
+const LOOP_VERT = /* glsl */ `
+  attribute float aSize;
+  attribute float aAlpha;
+  attribute float aNode;   /* -2 head comet, -1 ring, 0..3 phase nodes */
+  attribute float aRand;
+  uniform float uPR;
+  uniform float uTime;
+  uniform float uActive;
+  uniform float uOpacity;
+  varying float vAlpha;
+  varying float vNode;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float isActive = (aNode >= 0.0 && abs(aNode - uActive) < 0.5) ? 1.0 : 0.0;
+    float boost = aNode >= 0.0 ? mix(0.65, 3.0, isActive) : 1.0;
+    float tw = 0.78 + 0.22 * sin(uTime * (1.4 + aRand * 2.6) + aRand * 40.0);
+    vAlpha = aAlpha * boost * tw * uOpacity;
+    vNode = aNode;
+    gl_PointSize = aSize * boost * uPR * (7.0 / max(0.1, -mv.z));
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+
+const LOOP_FRAG = /* glsl */ `
+  uniform vec3 uColor;
+  uniform vec3 uAccent;
+  varying float vAlpha;
+  varying float vNode;
+  void main() {
+    vec2 c = gl_PointCoord - 0.5;
+    float d = length(c);
+    if (d > 0.5) discard;
+    float a = smoothstep(0.5, 0.06, d);
+    vec3 col = uColor;                                         /* ring = dust grey */
+    if (vNode > -0.5) col = uAccent;                           /* phase nodes = accent */
+    else if (vNode < -1.5) col = mix(uAccent, vec3(1.0), 0.6); /* comet head = white-hot */
+    gl_FragColor = vec4(col, a * vAlpha);
+  }
+`;
+
 const smooth = (t) => t * t * (3 - 2 * t);
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -314,53 +356,91 @@ export default function SceneCanvas({ onApi }) {
     const sparks = new THREE.Points(sparkGeom, sparkMat);
     scene.add(sparks);
 
-    /* ---- agent react-loop orbit (global background) ----
-       a thin accent ring around the entity; four workflow nodes sit at
-       90° spacing and a brighter head pulse laps the ring every 7.6s
-       (4 steps × 1.9s = one Thought→Action→Observation→Reflection loop) */
-    const LOOP_R = 2.75;
-    const LOOP_NODES = 4;
-    const LOOP_PERIOD = 7.6;
-    const loopGroup = new THREE.Group();
-    loopGroup.rotation.set(0.42, 0, -0.12);
-    const loopLinePts = [];
-    for (let i = 0; i <= 128; i++) {
-      const a = (i / 128) * Math.PI * 2;
-      loopLinePts.push(new THREE.Vector3(Math.cos(a) * LOOP_R, Math.sin(a) * LOOP_R, 0));
+    /* ---- ReAct loop — drawn entirely with particles ----
+       a ring of dust, four phase clusters (Thought / Action /
+       Observation / Reflection) at 90° spacing, and a comet head of
+       particles lapping the ring once per workflow cycle (7.6s).
+       The group is pinned to the screen-center backdrop every frame. */
+    const LOOP_R = 3.0;
+    const LOOP_PERIOD = 7.6; // 4 steps × 1.9s
+    const LOOP_START = -Math.PI / 2; // head starts at the top node
+    const RING_N = IS_MOBILE ? 170 : 320;
+    const NODE_N = IS_MOBILE ? 26 : 44; // particles per phase cluster
+    const HEAD_N = IS_MOBILE ? 16 : 30; // comet trail length
+    const LOOP_TOTAL = RING_N + NODE_N * 4 + HEAD_N;
+    const HEAD0 = RING_N + NODE_N * 4;
+    const loopPos = new Float32Array(LOOP_TOTAL * 3);
+    const loopSize = new Float32Array(LOOP_TOTAL);
+    const loopAlpha = new Float32Array(LOOP_TOTAL);
+    const loopNode = new Float32Array(LOOP_TOTAL);
+    const loopJit = new Float32Array(LOOP_TOTAL); // per-particle radius jitter
+    let li = 0;
+    const putLoop = (x, y, z, size, alpha, node) => {
+      loopPos[li * 3] = x;
+      loopPos[li * 3 + 1] = y;
+      loopPos[li * 3 + 2] = z;
+      loopSize[li] = size;
+      loopAlpha[li] = alpha;
+      loopNode[li] = node;
+      loopJit[li] = (Math.random() - 0.5) * 0.09;
+      li++;
+    };
+    /* ring of faint dust */
+    for (let i = 0; i < RING_N; i++) {
+      const a = (i / RING_N) * Math.PI * 2;
+      putLoop(
+        Math.cos(a) * LOOP_R,
+        Math.sin(a) * LOOP_R,
+        0,
+        2.4 + Math.random() * 2.2,
+        0.28 + Math.random() * 0.22,
+        -1
+      );
     }
-    const loopLineMat = new THREE.LineBasicMaterial({
-      color: ACCENT,
+    /* four fixed phase clusters at 90° spacing */
+    for (let nI = 0; nI < 4; nI++) {
+      const na = LOOP_START + nI * (Math.PI / 2);
+      for (let k = 0; k < NODE_N; k++) {
+        putLoop(
+          Math.cos(na) * LOOP_R + (Math.random() + Math.random() - 1) * 0.2,
+          Math.sin(na) * LOOP_R + (Math.random() + Math.random() - 1) * 0.2,
+          (Math.random() - 0.5) * 0.1,
+          2.2 + Math.random() * 2.0,
+          0.55 + Math.random() * 0.3,
+          nI
+        );
+      }
+    }
+    /* comet head trail — positions animated each frame */
+    for (let i = 0; i < HEAD_N; i++) {
+      putLoop(0, 0, 0, 3.4 + (1 - i / HEAD_N) * 4.0, Math.pow(1 - i / HEAD_N, 1.4), -2);
+    }
+    const loopGeom = new THREE.BufferGeometry();
+    loopGeom.setAttribute("position", new THREE.BufferAttribute(loopPos, 3));
+    loopGeom.setAttribute("aSize", new THREE.BufferAttribute(loopSize, 1));
+    loopGeom.setAttribute("aAlpha", new THREE.BufferAttribute(loopAlpha, 1));
+    loopGeom.setAttribute("aNode", new THREE.BufferAttribute(loopNode, 1));
+    loopGeom.setAttribute(
+      "aRand",
+      new THREE.BufferAttribute(Float32Array.from({ length: LOOP_TOTAL }, () => Math.random()), 1)
+    );
+    const loopMat = new THREE.ShaderMaterial({
+      vertexShader: LOOP_VERT,
+      fragmentShader: LOOP_FRAG,
       transparent: true,
-      opacity: 0.1,
-      depthWrite: false,
-    });
-    loopGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(loopLinePts), loopLineMat));
-    const loopNodeGeom = new THREE.BufferGeometry();
-    loopNodeGeom.setAttribute("position", new THREE.BufferAttribute(new Float32Array(LOOP_NODES * 3), 3));
-    const loopNodeMat = new THREE.PointsMaterial({
-      color: 0xd8ff3e,
-      size: 0.17,
-      map: dustTexture,
-      transparent: true,
-      opacity: 0.8,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      sizeAttenuation: true,
+      uniforms: {
+        uPR: { value: pixelRatio },
+        uTime: { value: 0 },
+        uActive: { value: 0 },
+        uOpacity: { value: 0 },
+        uColor: { value: BODY },
+        uAccent: { value: ACCENT },
+      },
     });
-    loopGroup.add(new THREE.Points(loopNodeGeom, loopNodeMat));
-    const loopHeadGeom = new THREE.BufferGeometry();
-    loopHeadGeom.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3), 3));
-    const loopHeadMat = new THREE.PointsMaterial({
-      color: 0xd8ff3e,
-      size: 0.3,
-      map: dustTexture,
-      transparent: true,
-      opacity: 0.95,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      sizeAttenuation: true,
-    });
-    loopGroup.add(new THREE.Points(loopHeadGeom, loopHeadMat));
+    const loopGroup = new THREE.Group();
+    loopGroup.add(new THREE.Points(loopGeom, loopMat));
     scene.add(loopGroup);
 
     /* dust field */
@@ -480,6 +560,7 @@ export default function SceneCanvas({ onApi }) {
 
     const clock = new THREE.Clock();
     const tmp = new THREE.Vector3();
+    const camDir = new THREE.Vector3();
 
     const tick = () => {
       if (disposed) return;
@@ -583,19 +664,31 @@ export default function SceneCanvas({ onApi }) {
       sparkGeom.attributes.position.needsUpdate = true;
       sparkMat.opacity = (0.35 + 0.4 * cur.tint + cur.op * 0.2) * (0.8 + 0.2 * Math.sin(t * 2.3));
 
-      /* react-loop orbit — head laps the ring once per workflow cycle */
-      const la = REDUCED ? -Math.PI / 2 : (t / LOOP_PERIOD) * Math.PI * 2 - Math.PI / 2;
-      for (let i = 0; i < LOOP_NODES; i++) {
-        const na = la - i * (Math.PI / 2);
-        loopNodeGeom.attributes.position.setXYZ(i, Math.cos(na) * LOOP_R, Math.sin(na) * LOOP_R, 0);
+      /* ReAct loop — particle comet laps the ring, one phase per 1.9s;
+         the loop is pinned to the screen-center backdrop and billboards
+         toward the camera, so it always sits at the heart of the frame */
+      const nowMs = performance.now();
+      const la = REDUCED
+        ? LOOP_START
+        : LOOP_START + ((nowMs / 1000) / LOOP_PERIOD) * Math.PI * 2;
+      for (let i = 0; i < HEAD_N; i++) {
+        const tt = i / HEAD_N;
+        const ang = la - tt * 0.62;
+        const r = LOOP_R + loopJit[HEAD0 + i];
+        const idx = (HEAD0 + i) * 3;
+        loopPos[idx] = Math.cos(ang) * r;
+        loopPos[idx + 1] = Math.sin(ang) * r;
+        loopPos[idx + 2] = loopJit[HEAD0 + i] * 0.8;
       }
-      loopNodeGeom.attributes.position.needsUpdate = true;
-      loopHeadGeom.attributes.position.setXYZ(0, Math.cos(la) * LOOP_R, Math.sin(la) * LOOP_R, 0);
-      loopHeadGeom.attributes.position.needsUpdate = true;
+      loopGeom.attributes.position.needsUpdate = true;
+      loopMat.uniforms.uTime.value = t;
+      loopMat.uniforms.uActive.value = REDUCED ? 0 : Math.floor(nowMs / 1900) % 4;
       const loopBreath = 0.85 + 0.15 * Math.sin(t * 2.6);
-      loopLineMat.opacity = (0.05 + cur.op * 0.09) * loopBreath;
-      loopNodeMat.opacity = (0.3 + cur.op * 0.5) * loopBreath;
-      loopHeadMat.opacity = (0.4 + cur.op * 0.55) * loopBreath;
+      loopMat.uniforms.uOpacity.value = (0.52 + (1 - cur.op) * 0.3) * loopBreath;
+      camera.getWorldDirection(camDir);
+      loopGroup.position.copy(camera.position).addScaledVector(camDir, 9.8);
+      loopGroup.quaternion.copy(camera.quaternion);
+      loopGroup.rotateZ(t * 0.03);
 
       core.rotation.y -= dt * 0.05;
       core.rotation.x = Math.sin(t * 0.11) * 0.2;
