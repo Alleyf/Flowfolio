@@ -21,25 +21,41 @@ const ACCENT = new THREE.Color("#d8ff3e");
 const BODY = new THREE.Color("#c9ccd2");
 const HOT = new THREE.Color("#ff7a3c"); // ember sparks
 
-/* per-scene camera / atmosphere waypoints (index-aligned with SCENES) */
+/* per-scene camera / atmosphere waypoints (index-aligned with SCENES).
+   Each chapter carries its own color grade: bg/fog tone, particle
+   accent hue, entity scale — so every cut reads like a new lens */
 const WAYPOINTS = [
-  // 00 PROFILE — entity stands right of the giant type
-  { pos: [0, 0.1, 7.6], look: [-1.55, 0.1, 0], fov: 48, op: 0.95, roll: 0.0, tint: 0.0 },
-  // 01 EDUCATION — camera slides left, entity dims into a timeline ribbon
-  { pos: [-1.1, 0.35, 8.4], look: [0.9, 0.05, 0], fov: 50, op: 0.55, roll: 0.035, tint: 0.05 },
-  // 02 EXPERIENCE — dissolve into agent clusters, embers rise
-  { pos: [0, 0.5, 6.6], look: [0, -0.05, 0], fov: 58, op: 0.9, roll: -0.05, tint: 0.4 },
-  // 03 SKILLS — camera pushes inside the field
-  { pos: [0, 0, 5.2], look: [0, 0, -0.6], fov: 62, op: 0.85, roll: 0.04, tint: 0.35 },
-  // 04 PROJECTS — entity recedes far right behind the editorial slides
-  { pos: [2.3, 0.2, 9.0], look: [-1.5, 0, 0], fov: 46, op: 0.35, roll: 0.0, tint: 0.08 },
-  // 05 WORKS — far left
-  { pos: [-2.1, 0.1, 9.2], look: [1.3, 0, 0], fov: 46, op: 0.3, roll: -0.03, tint: 0.06 },
-  // 06 WRITING — dim backdrop behind the editorial list
-  { pos: [0, -0.2, 9.4], look: [0, 0.1, 0], fov: 50, op: 0.26, roll: 0.02, tint: 0.05 },
-  // 07 CONTACT — the entity returns, centered, closing the loop
-  { pos: [0, 0.15, 7.4], look: [0, 0.05, 0], fov: 50, op: 0.9, roll: 0.0, tint: 0.0 },
+  // 00 PROFILE — brand lime on near-black, entity right of the type
+  { pos: [0, 0.1, 7.6], look: [-1.55, 0.1, 0], fov: 48, op: 0.95, roll: 0.0, tint: 0.0,
+    bg: "#050505", accent: "#d8ff3e", scale: 1.0 },
+  // 01 EDUCATION — cold navy grade, ice-blue timeline strand far left
+  { pos: [-2.6, 0.5, 9.6], look: [0.9, 0.05, 0], fov: 56, op: 0.55, roll: 0.06, tint: 0.3,
+    bg: "#0a1a33", accent: "#7fd4ff", scale: 0.72 },
+  // 02 EXPERIENCE — ember grade, camera dives into orange agent clusters
+  { pos: [0.6, -0.3, 5.6], look: [0, -0.05, 0], fov: 64, op: 0.9, roll: -0.08, tint: 0.5,
+    bg: "#200a03", accent: "#ff7a3c", scale: 1.18 },
+  // 03 SKILLS — violet grade, deepest push-in of the whole film
+  { pos: [-0.4, 0.4, 4.6], look: [0, 0, -0.6], fov: 72, op: 0.85, roll: 0.07, tint: 0.45,
+    bg: "#170b2e", accent: "#b18cff", scale: 0.85 },
+  // 04 PROJECTS — deep-green grade, entity recedes far right
+  { pos: [3.4, 0.6, 10.5], look: [-1.5, 0, 0], fov: 44, op: 0.35, roll: 0.03, tint: 0.35,
+    bg: "#06251a", accent: "#3cffb5", scale: 1.25 },
+  // 05 WORKS — warm amber grade, far left
+  { pos: [-3.2, 0.3, 10.8], look: [1.3, 0, 0], fov: 44, op: 0.3, roll: -0.05, tint: 0.35,
+    bg: "#2a1506", accent: "#ffc93c", scale: 1.15 },
+  // 06 WRITING — ink-grey monochrome grade, dim backdrop
+  { pos: [0, -1.1, 10.6], look: [0, 0.1, 0], fov: 52, op: 0.26, roll: 0.04, tint: 0.25,
+    bg: "#1a1a20", accent: "#e8e6df", scale: 0.95 },
+  // 07 CONTACT — back to brand lime, entity returns centered, closing the loop
+  { pos: [0, 0.15, 6.8], look: [0, 0.05, 0], fov: 50, op: 0.9, roll: 0.0, tint: 0.0,
+    bg: "#050505", accent: "#d8ff3e", scale: 1.0 },
 ];
+
+/* pre-parse grade colors once — Color.copy()/lerp() need real Colors */
+for (let i = 0; i < WAYPOINTS.length; i++) {
+  WAYPOINTS[i].bg = new THREE.Color(WAYPOINTS[i].bg);
+  WAYPOINTS[i].accent = new THREE.Color(WAYPOINTS[i].accent);
+}
 
 /* --------------------- particle formations ------------------------ */
 /* 8 target formations; the entity morphs between them as you scroll. */
@@ -175,7 +191,9 @@ const P_FRAG = /* glsl */ `
     if (d > 0.5) discard;
     float a = smoothstep(0.5, 0.08, d);
     float tw = 0.72 + 0.28 * sin(uTime * (1.2 + vRand * 3.2) + vRand * 40.0); /* twinkle */
-    vec3 col = mix(uColor, uAccent, step(0.985 - uTintMix * 0.28, vRand));
+    /* chapter grade: a large share of the swarm rides the scene accent */
+    float accShare = smoothstep(0.72 - uTintMix * 0.38, 0.95, vRand);
+    vec3 col = mix(uColor, uAccent, accShare);
     gl_FragColor = vec4(col, a * uOpacity * (0.35 + 0.65 * vRand) * tw);
   }
 `;
@@ -556,6 +574,9 @@ export default function SceneCanvas({ onApi }) {
       op: 0,
       roll: 0,
       tint: 0,
+      bg: new THREE.Color(WAYPOINTS[0].bg),
+      accent: new THREE.Color(WAYPOINTS[0].accent),
+      scale: WAYPOINTS[0].scale,
     };
     let progress = 0; // smoothed global progress
     let progressTarget = 0;
@@ -609,6 +630,9 @@ export default function SceneCanvas({ onApi }) {
       out.op = lerp(a.op, b.op, t);
       out.roll = lerp(a.roll, b.roll, t);
       out.tint = lerp(a.tint, b.tint, t);
+      out.bg.copy(a.bg).lerp(b.bg, t);
+      out.accent.copy(a.accent).lerp(b.accent, t);
+      out.scale = lerp(a.scale, b.scale, t);
     };
     const blended = {
       pos: new THREE.Vector3(),
@@ -617,6 +641,9 @@ export default function SceneCanvas({ onApi }) {
       op: 1,
       roll: 0,
       tint: 0,
+      bg: new THREE.Color(WAYPOINTS[0].bg),
+      accent: new THREE.Color(WAYPOINTS[0].accent),
+      scale: WAYPOINTS[0].scale,
     };
     function applyWp(out, w) {
       out.pos.set(...w.pos);
@@ -625,6 +652,9 @@ export default function SceneCanvas({ onApi }) {
       out.op = w.op;
       out.roll = w.roll;
       out.tint = w.tint;
+      out.bg.set(w.bg);
+      out.accent.set(w.accent);
+      out.scale = w.scale;
     }
 
     /* pointer -> world position on the z=0 plane (for repulsion + shockwave) */
@@ -658,6 +688,21 @@ export default function SceneCanvas({ onApi }) {
 
       /* camera path */
       blendWaypoint(progress, blended);
+
+      /* film-LUT cut — the color grade holds steady across each
+         chapter's span and only swaps as the next chapter's content
+         arrives, so every cut lands on a distinct palette */
+      let gi = 0;
+      while (gi < WAYPOINTS.length - 1 && progress > SCENES[gi].end) gi++;
+      const gNext = Math.min(WAYPOINTS.length - 1, gi + 1);
+      const gsw = smooth(
+        Math.max(0, Math.min(1, (progress - (SCENES[gNext].start - 0.35)) / 0.7))
+      );
+      blended.bg.copy(WAYPOINTS[gi].bg).lerp(WAYPOINTS[gNext].bg, gsw);
+      blended.accent.copy(WAYPOINTS[gi].accent).lerp(WAYPOINTS[gNext].accent, gsw);
+      blended.scale = lerp(WAYPOINTS[gi].scale, WAYPOINTS[gNext].scale, gsw);
+      blended.tint = lerp(WAYPOINTS[gi].tint, WAYPOINTS[gNext].tint, gsw);
+
       cur.pos.lerp(blended.pos, k);
       cur.look.lerp(blended.look, k);
       camera.position.copy(cur.pos);
@@ -670,6 +715,20 @@ export default function SceneCanvas({ onApi }) {
       cur.op += (blended.op - cur.op) * k;
       cur.roll += (blended.roll - cur.roll) * k;
       cur.tint += (blended.tint - cur.tint) * k;
+      cur.bg.lerp(blended.bg, k);
+      cur.accent.lerp(blended.accent, k);
+      cur.scale += (blended.scale - cur.scale) * k;
+
+      /* chapter color grade — bg, fog, accent hue and entity scale all
+         ride the same curve, so every scene reads as its own lens */
+      renderer.setClearColor(cur.bg);
+      scene.fog.color.copy(cur.bg);
+      mat.uniforms.uAccent.value.copy(cur.accent);
+      consMat.color.copy(cur.accent);
+      sparkMat.color.copy(cur.accent);
+      core.material.color.copy(cur.accent);
+      entity.scale.setScalar(cur.scale);
+      core.scale.setScalar(cur.scale * (1 + Math.sin(t * 0.8) * 0.03));
 
       pointer.x += (pointer.tx - pointer.x) * 0.04;
       pointer.y += (pointer.ty - pointer.y) * 0.04;
@@ -775,8 +834,7 @@ export default function SceneCanvas({ onApi }) {
 
       core.rotation.y -= dt * 0.05;
       core.rotation.x = Math.sin(t * 0.11) * 0.2;
-      core.material.opacity = cur.op * 0.12;
-      core.scale.setScalar(1 + Math.sin(t * 0.8) * 0.03);
+      core.material.opacity = cur.op * 0.2;
 
       /* layered dust — slow parallax drift + gentle bob + pointer sway */
       starsFar.rotation.y += dt * 0.006;
@@ -816,7 +874,7 @@ export default function SceneCanvas({ onApi }) {
       }
       consGeom.setDrawRange(0, seg * 2);
       consGeom.attributes.position.needsUpdate = true;
-      consMat.opacity = cur.op * (0.09 + 0.045 * Math.sin(t * 1.7));
+      consMat.opacity = cur.op * (0.16 + 0.07 * Math.sin(t * 1.7));
 
       /* velocity streaks — radial warp lines while scrolling fast */
       const sv = Math.min((Math.abs(v) * 0.9), 1);
