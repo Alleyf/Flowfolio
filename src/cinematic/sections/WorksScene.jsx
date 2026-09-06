@@ -6,44 +6,104 @@ import {
   artCopyPool,
   artCuratorMetaPool,
   normalizeArtCategoryName,
-  ART_INITIAL_VISIBLE_COUNT,
 } from "../artData";
 
 /* SCENE 06 / WORK MATRIX — two modes, like the original site:
    · works — horizontal filmstrip of all 9 works on scroll progress
-   · art   — Art Matrix: lead photo + random art copy + tile grid
-     (hover a tile to switch the lead, auto-advance every 5.5s)
+   · art   — Art Matrix: the same horizontal grammar, one photo per
+     frame; wheel/swipe turns the strip, boundaries hand back to the
+     engine so scrolling on keeps you travelling between scenes.
    Click a work opens the fullscreen viewer. Full data kept. */
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 function ArtMatrix({ artRef }) {
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(ART_INITIAL_VISIBLE_COUNT);
-  const [artCopy, setArtCopy] = useState(artCopyPool[0]);
-  const hoverRafRef = useRef(0);
+  const [copyOffset, setCopyOffset] = useState(0);
+  const indexRef = useRef(0);
+  const lockRef = useRef(0);
+  const accRef = useRef(0);
+  const touchRef = useRef(null);
+  const touchAccRef = useRef(0);
 
   const hasArt = artPhotoCategories.length > 0;
   const category = hasArt ? artPhotoCategories[categoryIndex % artPhotoCategories.length] : null;
   const photos = category?.photos ?? [];
-  const lead = photos[photoIndex % Math.max(1, photos.length)] ?? null;
-  const visible = photos.slice(0, visibleCount);
+  const count = photos.length;
   const curator = artCuratorMetaPool[(categoryIndex + photoIndex) % artCuratorMetaPool.length];
-  const frameCode = `ART-${String(categoryIndex + 1).padStart(2, "0")}-${String(photoIndex + 1).padStart(2, "0")}`;
+  /* each frame gets its own caption from the pool, stable per photo */
+  const copyFor = (i) => artCopyPool[(i + copyOffset) % artCopyPool.length];
 
-  /* random art copy whenever category changes */
   useEffect(() => {
-    setArtCopy(artCopyPool[Math.floor(Math.random() * artCopyPool.length)]);
-  }, [categoryIndex]);
+    indexRef.current = photoIndex;
+  }, [photoIndex]);
 
-  /* auto-advance the lead photo */
+  const step = (dir) => {
+    setPhotoIndex((p) => clamp(p + dir, 0, count - 1));
+  };
+
+  /* wheel — one photo per flick; at either end the event is handed
+     back to the engine so the visit flows on into the next scene.
+     Listened on window CAPTURE (gated by composedPath) so events that
+     target chrome outside the art root (mode chips, rail…) are still
+     caught before the engine's own window listener consumes them. */
   useEffect(() => {
-    if (!hasArt || photos.length < 2) return undefined;
-    const timer = window.setInterval(() => {
-      if (document.hidden) return;
-      setPhotoIndex((current) => (current + 1) % photos.length);
-    }, 5500);
-    return () => window.clearInterval(timer);
-  }, [hasArt, photos.length]);
+    if (!hasArt) return undefined;
+    const root = artRef.current;
+    if (!root) return undefined;
+    const inside = (e) => e.composedPath().includes(root);
+    const onWheel = (e) => {
+      if (!inside(e)) return;
+      const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+      if (Math.abs(delta) < 2) return;
+      const now = performance.now();
+      const locked = now < lockRef.current;
+      accRef.current = clamp(accRef.current + delta, -160, 160);
+      const atStart = indexRef.current === 0 && accRef.current < 0;
+      const atEnd = indexRef.current === count - 1 && accRef.current > 0;
+      if (!locked && (atStart || atEnd)) return; // engine takes over
+      e.stopPropagation();
+      if (locked) return;
+      if (Math.abs(accRef.current) >= 90) {
+        const dir = accRef.current > 0 ? 1 : -1;
+        accRef.current = 0;
+        lockRef.current = now + 620;
+        step(dir);
+      }
+    };
+    window.addEventListener("wheel", onWheel, { capture: true, passive: true });
+
+    /* touch swipe turns frames the same way */
+    const onTouchStart = (e) => {
+      if (!inside(e)) return;
+      touchRef.current = e.touches[0].clientY;
+    };
+    const onTouchMove = (e) => {
+      if (!inside(e) || touchRef.current === null) return;
+      const y = e.touches[0].clientY;
+      touchAccRef.current += touchRef.current - y;
+      touchRef.current = y;
+      e.stopPropagation();
+    };
+    const onTouchEnd = () => {
+      if (Math.abs(touchAccRef.current) > 50) {
+        step(touchAccRef.current > 0 ? 1 : -1);
+      }
+      touchRef.current = null;
+      touchAccRef.current = 0;
+    };
+    window.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
+    window.addEventListener("touchmove", onTouchMove, { capture: true, passive: true });
+    window.addEventListener("touchend", onTouchEnd, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener("wheel", onWheel, { capture: true });
+      window.removeEventListener("touchstart", onTouchStart, { capture: true });
+      window.removeEventListener("touchmove", onTouchMove, { capture: true });
+      window.removeEventListener("touchend", onTouchEnd, { capture: true });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasArt, count]);
 
   if (!hasArt) {
     return (
@@ -56,129 +116,91 @@ function ArtMatrix({ artRef }) {
     );
   }
 
-  const hoverTile = (index) => {
-    if (index === photoIndex || hoverRafRef.current) return;
-    hoverRafRef.current = window.requestAnimationFrame(() => {
-      setPhotoIndex(index);
-      hoverRafRef.current = 0;
-    });
-  };
-
-  const shuffleCopy = () => {
-    setArtCopy((current) => {
-      let next = current;
-      while (next === current && artCopyPool.length > 1) {
-        next = artCopyPool[Math.floor(Math.random() * artCopyPool.length)];
-      }
-      return next;
-    });
-  };
-
   return (
     <div className="art-matrix" ref={artRef}>
-      <div className="art-lead-row">
-        <figure className="art-lead" data-cursor="VIEW">
-          {lead ? <img src={lead} alt={normalizeArtCategoryName(category.name)} /> : null}
-          <figcaption className="mono">
-            FRAME {String(photoIndex + 1).padStart(2, "0")} — {normalizeArtCategoryName(category.name)}
-          </figcaption>
-        </figure>
-
-        <aside className="art-panel">
-          <div className="art-kicker mono rv-in">
-            Art Matrix / 艺术摄影
-          </div>
-          <h3 className="art-cat rv-in">
-            {normalizeArtCategoryName(category.name)}
-          </h3>
-          <div className="art-copy rv-in">
-            <div className="art-copy-head mono">
-              <span>随机艺术文案</span>
-              <button type="button" className="art-shuffle" onClick={shuffleCopy} aria-label="换一句" data-cursor="SHUFFLE">
-                <Shuffle size={13} /> 换一句
-              </button>
-            </div>
-            <p className="art-copy-text">「{artCopy}」</p>
-            <div className="art-copy-meta mono">
-              <span>{curator}</span>
-              <span>
-                分类 {categoryIndex + 1}/{artPhotoCategories.length}
-              </span>
-              <span>
-                第 {photoIndex + 1} / {photos.length} 张
-              </span>
-            </div>
-          </div>
-          <div className="art-cats rv-in">
-            {artPhotoCategories.map((cat, i) => (
-              <button
-                key={cat.name}
-                type="button"
-                className={i === categoryIndex ? "art-cat-chip active mono" : "art-cat-chip mono"}
-                onClick={() => {
-                  setCategoryIndex(i);
-                  setPhotoIndex(0);
-                  setVisibleCount(ART_INITIAL_VISIBLE_COUNT);
-                }}
-              >
-                {normalizeArtCategoryName(cat.name)} · {cat.photos.length}
-              </button>
-            ))}
-          </div>
-        </aside>
-      </div>
-
-      <div className="art-tiles">
-        {visible.map((photo, index) => (
-          <figure
-            key={`${category.name}-${photo}`}
-            className={index === photoIndex ? "art-tile active" : "art-tile"}
-            onMouseEnter={() => hoverTile(index)}
-            onFocus={() => hoverTile(index)}
-            onClick={() => setPhotoIndex(index)}
-            data-cursor="VIEW"
+      <div className="art-cats rv-in" role="tablist" aria-label="艺术分类">
+        {artPhotoCategories.map((cat, i) => (
+          <button
+            key={cat.name}
+            type="button"
+            className={i === categoryIndex ? "art-cat-chip active mono" : "art-cat-chip mono"}
+            onClick={() => {
+              setCategoryIndex(i);
+              setPhotoIndex(0);
+            }}
           >
-            <img src={photo} alt={`${normalizeArtCategoryName(category.name)}-${index + 1}`} loading="lazy" />
-            <figcaption className="mono">FRAME {String(index + 1).padStart(2, "0")}</figcaption>
-          </figure>
+            {normalizeArtCategoryName(cat.name)} · {cat.photos.length}
+          </button>
         ))}
       </div>
-      {visibleCount < photos.length ? (
-        <button
-          type="button"
-          className="art-more mono rv-in"
-          onClick={() => setVisibleCount((c) => c + ART_INITIAL_VISIBLE_COUNT)}
+
+      <div className="art-stage">
+        <div
+          className="art-strip"
+          style={{ transform: `translate3d(${(-photoIndex * 100).toFixed(2)}%, 0, 0)` }}
         >
-          加载更多（剩余 {photos.length - visibleCount} 张）
-        </button>
-      ) : null}
+          {photos.map((photo, i) => (
+            <div className="art-slide" key={`${category.name}-${photo}`}>
+              <figure className="art-lead" data-cursor="FRAME">
+                <img
+                  src={photo}
+                  alt={`${normalizeArtCategoryName(category.name)} ${i + 1}`}
+                  loading={i < 2 ? "eager" : "lazy"}
+                />
+                <figcaption className="mono">
+                  {frameCodeOf(categoryIndex, i)} — {normalizeArtCategoryName(category.name)}
+                </figcaption>
+              </figure>
+              <aside className="art-panel">
+                <div className="art-kicker mono">Art Matrix / 艺术摄影</div>
+                <h3 className="art-cat">{normalizeArtCategoryName(category.name)}</h3>
+                <div className="art-copy">
+                  <div className="art-copy-head mono">
+                    <span>随机艺术文案</span>
+                    <button
+                      type="button"
+                      className="art-shuffle"
+                      onClick={() => setCopyOffset((o) => o + 1 + Math.floor(Math.random() * 3))}
+                      aria-label="换一句"
+                      data-cursor="SHUFFLE"
+                    >
+                      <Shuffle size={13} /> 换一句
+                    </button>
+                  </div>
+                  <p className="art-copy-text">「{copyFor(i)}」</p>
+                  <div className="art-copy-meta mono">
+                    <span>{curator}</span>
+                    <span>
+                      分类 {categoryIndex + 1}/{artPhotoCategories.length}
+                    </span>
+                    <span>
+                      {String(i + 1).padStart(2, "0")} — {String(count).padStart(2, "0")}
+                    </span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="art-hint mono rv-in">
+        <span className="art-count">
+          {String(photoIndex + 1).padStart(2, "0")} — {String(count).padStart(2, "0")}
+        </span>
+        SCROLL TO TURN THE FRAMES →
+      </div>
     </div>
   );
 }
+
+const frameCodeOf = (cat, i) =>
+  `ART-${String(cat + 1).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`;
 
 export default function WorksScene({ refCb, stripRef, innerRef, viewerOpenRef }) {
   const [viewer, setViewer] = useState(null);
   const [mode, setMode] = useState("works");
   const artRef = useRef(null);
-
-  /* art mode: inner-scroll the tile grid first, hand back to the engine
-     only when it has no slack left (same grammar as the works strip) */
-  useEffect(() => {
-    if (mode !== "art") return undefined;
-    const root = artRef.current;
-    if (!root) return undefined;
-    const onWheel = (e) => {
-      const scroller = root.querySelector(".art-tiles");
-      if (!scroller) return;
-      const slack = scroller.scrollHeight - scroller.clientHeight;
-      if (slack <= 2) return;
-      const before = scroller.scrollTop;
-      scroller.scrollTop += e.deltaY;
-      if (scroller.scrollTop !== before) e.stopPropagation();
-    };
-    root.addEventListener("wheel", onWheel, { passive: true });
-    return () => root.removeEventListener("wheel", onWheel);
-  }, [mode]);
 
   useEffect(() => {
     viewerOpenRef.current = viewer !== null;

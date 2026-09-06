@@ -29,6 +29,44 @@ const FADE_OUT = 0.22; // outgoing scene dissolve zone (exits fast, blurred)
 const FADE_IN = 0.34; // incoming scene arrival zone (starts late)
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+/* Agent ReAct Loop — shown as a global ambient badge + a WebGL orbit
+   ring in SceneCanvas. The badge cycles the four workflow steps. */
+const LOOP_STEPS = [
+  { key: "thought", label: "Thought", hint: "拆解目标与约束，规划下一步要做什么。" },
+  { key: "action", label: "Action", hint: "调度 Skill / MCP / Plugin，执行工具调用。" },
+  { key: "observation", label: "Observation", hint: "回收工具返回，校验结果是否可信。" },
+  { key: "reflection", label: "Reflection", hint: "复盘并修正计划，进入下一轮循环。" },
+];
+
+function ReactLoopBadge() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.hidden) return;
+      setStep((current) => (current + 1) % LOOP_STEPS.length);
+    }, 1900);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="react-loop-badge mono" aria-hidden="true">
+      <div className="rlb-row">
+        <i className="rl-pulse" />
+        <span className="rlb-title">AGENT REACT LOOP</span>
+        <span className="rlb-track">
+          {LOOP_STEPS.map((item, index) => (
+            <span key={item.key} className={index === step ? "rlb-node on" : "rlb-node"}>
+              {item.label}
+            </span>
+          ))}
+        </span>
+      </div>
+      <p className="rlb-hint">{LOOP_STEPS[step].hint}</p>
+    </div>
+  );
+}
+
 export default function CinematicApp() {
   const [booted, setBooted] = useState(false);
   const [active, setActive] = useState(0);
@@ -512,6 +550,9 @@ export default function CinematicApp() {
           </div>
         </div>
       )}
+
+      {/* global ambient: agent react loop cycling in the background */}
+      {booted && <ReactLoopBadge />}
 
       <div className="grain" aria-hidden="true" />
       <Cursor />

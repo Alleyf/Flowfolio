@@ -314,6 +314,55 @@ export default function SceneCanvas({ onApi }) {
     const sparks = new THREE.Points(sparkGeom, sparkMat);
     scene.add(sparks);
 
+    /* ---- agent react-loop orbit (global background) ----
+       a thin accent ring around the entity; four workflow nodes sit at
+       90° spacing and a brighter head pulse laps the ring every 7.6s
+       (4 steps × 1.9s = one Thought→Action→Observation→Reflection loop) */
+    const LOOP_R = 2.75;
+    const LOOP_NODES = 4;
+    const LOOP_PERIOD = 7.6;
+    const loopGroup = new THREE.Group();
+    loopGroup.rotation.set(0.42, 0, -0.12);
+    const loopLinePts = [];
+    for (let i = 0; i <= 128; i++) {
+      const a = (i / 128) * Math.PI * 2;
+      loopLinePts.push(new THREE.Vector3(Math.cos(a) * LOOP_R, Math.sin(a) * LOOP_R, 0));
+    }
+    const loopLineMat = new THREE.LineBasicMaterial({
+      color: ACCENT,
+      transparent: true,
+      opacity: 0.1,
+      depthWrite: false,
+    });
+    loopGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(loopLinePts), loopLineMat));
+    const loopNodeGeom = new THREE.BufferGeometry();
+    loopNodeGeom.setAttribute("position", new THREE.BufferAttribute(new Float32Array(LOOP_NODES * 3), 3));
+    const loopNodeMat = new THREE.PointsMaterial({
+      color: 0xd8ff3e,
+      size: 0.17,
+      map: dustTexture,
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+    loopGroup.add(new THREE.Points(loopNodeGeom, loopNodeMat));
+    const loopHeadGeom = new THREE.BufferGeometry();
+    loopHeadGeom.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3), 3));
+    const loopHeadMat = new THREE.PointsMaterial({
+      color: 0xd8ff3e,
+      size: 0.3,
+      map: dustTexture,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+    loopGroup.add(new THREE.Points(loopHeadGeom, loopHeadMat));
+    scene.add(loopGroup);
+
     /* dust field */
     const dustCount = IS_MOBILE ? 420 : 900;
     const dustPos = new Float32Array(dustCount * 3);
@@ -533,6 +582,20 @@ export default function SceneCanvas({ onApi }) {
       }
       sparkGeom.attributes.position.needsUpdate = true;
       sparkMat.opacity = (0.35 + 0.4 * cur.tint + cur.op * 0.2) * (0.8 + 0.2 * Math.sin(t * 2.3));
+
+      /* react-loop orbit — head laps the ring once per workflow cycle */
+      const la = REDUCED ? -Math.PI / 2 : (t / LOOP_PERIOD) * Math.PI * 2 - Math.PI / 2;
+      for (let i = 0; i < LOOP_NODES; i++) {
+        const na = la - i * (Math.PI / 2);
+        loopNodeGeom.attributes.position.setXYZ(i, Math.cos(na) * LOOP_R, Math.sin(na) * LOOP_R, 0);
+      }
+      loopNodeGeom.attributes.position.needsUpdate = true;
+      loopHeadGeom.attributes.position.setXYZ(0, Math.cos(la) * LOOP_R, Math.sin(la) * LOOP_R, 0);
+      loopHeadGeom.attributes.position.needsUpdate = true;
+      const loopBreath = 0.85 + 0.15 * Math.sin(t * 2.6);
+      loopLineMat.opacity = (0.05 + cur.op * 0.09) * loopBreath;
+      loopNodeMat.opacity = (0.3 + cur.op * 0.5) * loopBreath;
+      loopHeadMat.opacity = (0.4 + cur.op * 0.55) * loopBreath;
 
       core.rotation.y -= dt * 0.05;
       core.rotation.x = Math.sin(t * 0.11) * 0.2;

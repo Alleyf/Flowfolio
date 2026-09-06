@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { internshipExperience as job } from "../../config/siteConfig";
 
 /* SCENE 03 / EXPERIENCE — outline giant typography + big-number metrics,
-   staged summary segments, full stack tags + the Agent ReAct Loop strip.
+   staged summary segments, full stack tags. The Agent ReAct Loop now
+   lives in the global stage (ReactLoopBadge + the WebGL orbit ring).
    All internship data kept. */
 
 const METRICS = [
@@ -11,50 +11,6 @@ const METRICS = [
   { k: "LOOP", v: "SELF-EVOLVE", note: "Workflow × ReAct · 验证自动化闭环" },
   { k: "ODPS · CH", v: "PIPELINE", note: "意图定向结案 · ClickHouse 加速" },
 ];
-
-const LOOP_STEPS = [
-  { key: "thought", label: "Thought", hint: "拆解目标与约束，规划下一步要做什么。" },
-  { key: "action", label: "Action", hint: "调度 Skill / MCP / Plugin，执行工具调用。" },
-  { key: "observation", label: "Observation", hint: "回收工具返回，校验结果是否可信。" },
-  { key: "reflection", label: "Reflection", hint: "复盘并修正计划，进入下一轮循环。" },
-];
-
-function AgentLoopStrip() {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      if (document.hidden) return;
-      setStep((current) => (current + 1) % LOOP_STEPS.length);
-    }, 1900);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="react-loop rv" data-th="0.38">
-      <div className="rl-head mono">
-        <i className="rl-pulse" aria-hidden="true" />
-        AGENT REACT LOOP · RUNNING
-      </div>
-      <div className="rl-track">
-        {LOOP_STEPS.map((item, index) => (
-          <span key={item.key} className="rl-cell">
-            <span className={index === step ? "rl-node active" : "rl-node"}>
-              <span className="rl-idx mono">{String(index + 1).padStart(2, "0")}</span>
-              {item.label}
-            </span>
-            {index < LOOP_STEPS.length - 1 ? (
-              <span className={index < step ? "rl-arrow lit" : "rl-arrow"} aria-hidden="true">
-                →
-              </span>
-            ) : null}
-          </span>
-        ))}
-      </div>
-      <p className="rl-hint mono">{LOOP_STEPS[step].hint}</p>
-    </div>
-  );
-}
 
 export default function ExperienceScene({ refCb }) {
   const segments = job.summary.split("；").filter(Boolean);
@@ -92,14 +48,12 @@ export default function ExperienceScene({ refCb }) {
           ))}
         </div>
 
-        <AgentLoopStrip />
-
         <div className="xp-summary">
-          <div className="xp-summary-label mono rv" data-th="0.5">
+          <div className="xp-summary-label mono rv" data-th="0.45">
             {job.summaryTitle} —
           </div>
           {segments.map((seg, i) => (
-            <p className="xp-seg rv" data-th={0.52 + i * 0.09} key={seg.slice(0, 12)}>
+            <p className="xp-seg rv" data-th={0.48 + i * 0.13} key={seg.slice(0, 12)}>
               <span className="mono seg-idx">{String(i + 1).padStart(2, "0")}</span>
               {seg}
               {i < segments.length - 1 ? "；" : "。"}
