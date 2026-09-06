@@ -46,8 +46,6 @@ export const siteMeta = {
   contribution: "./doc/contribution.png",
 };
 
-export const resumeDownloadPath = "./doc/resume.pdf";
-
 export const terminalConfig = {
   prompt: "visitor@recruiter:~$",
   title: "fan@flowfolio:~/resume",
@@ -100,7 +98,7 @@ export const terminalConfig = {
     {
       name: "contact",
       description: "输出联系方式",
-      output: ["mail: alleyf@qq.com", "phone: 13669156253", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
+      output: ["mail: alleyf@qq.com", "phone: 19223276194", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
     },
     {
       name: "clear",
@@ -453,7 +451,7 @@ export const contactConfig = {
   inboxEmail: "alleyf@qq.com",
   github: "https://github.com/Alleyf",
   blog: "https://alleyf.github.io/",
-  phone: "13669156253",
+  phone: "19223276194",
   location: "中国 · 武汉",
   status: "秋招进行中 · Agent 研发",
   defaultSubject: "纳入人才库，发送offer",
