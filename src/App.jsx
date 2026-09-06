@@ -597,7 +597,10 @@ function SectionShell({ id, eyebrow, title, icon, active, children }) {
     >
       <Stack spacing={1.1} sx={{ mb: 3 }}>
         <Chip icon={icon} label={eyebrow} variant="outlined" className="section-chip" />
-        <Typography variant="h3" className="section-title-gradient">{title}</Typography>
+        <Box className="section-title-row">
+          <Box className="section-title-tick" />
+          <Typography variant="h3" className="section-title-gradient">{title}</Typography>
+        </Box>
       </Stack>
       {children}
     </motion.section>
@@ -1568,7 +1571,13 @@ export default function App() {
         <Grid container spacing={3} alignItems="stretch">
           <Grid size={{ xs: 12, md: 7 }}>
             <Chip icon={<TerminalSquare size={16} />} label="SYSTEM ONLINE / DIGITAL IDENTITY" className="hero-chip" />
-            <Typography variant="h1" sx={{ mt: 2, mb: 2, fontSize: { xs: 42, md: 84 } }}>CsFan</Typography>
+            <Typography variant="h1" className="hero-display-title" aria-label="CsFan" sx={{ mt: 2, mb: 2 }}>
+              {"CsFan".split("").map((char, index) => (
+                <Box component="span" key={`${char}-${index}`} className="char-up" aria-hidden="true">
+                  <span style={{ "--ci": index }}>{char}</span>
+                </Box>
+              ))}
+            </Typography>
             <Typography className="hero-subtitle">Agent 应用研发工程师 / 多智能体系统实践者 / Java 全栈与云原生</Typography>
             <Typography className="hero-copy" sx={{ mt: 3 }}>
               围绕 ReAct - Plan - Execute - Replan - Reflection 架构范式构建可落地的 Agent 系统，同时在 Java 微服务、云原生交付与工程效率上保持全栈动手能力，把模型能力真正接进业务闭环。
@@ -1869,11 +1878,11 @@ export default function App() {
             {portfolioMode === "works" ? (
               <>
                 <motion.article key={work.title} initial={{ opacity: 0, x: 44 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
-                  <Card className="glass-card portfolio-card">
+                  <Card className="glass-card portfolio-card featured-item-card">
                     <Grid container>
                       <Grid size={{ xs: 12, md: 7 }}>
                         <motion.div
-                          className="portfolio-cover-wrap"
+                          className="portfolio-cover-wrap featured-cover"
                           whileHover={{ scale: 1.018 }}
                           transition={{ type: "spring", stiffness: 160, damping: 14, mass: 0.9 }}
                         >
@@ -2115,7 +2124,7 @@ export default function App() {
       <AppBar position="fixed" color="transparent" elevation={0} className="site-nav">
         <Box className="toolbar">
           <Box>
-            <Typography variant="h6" className="brand">{siteMeta.brand}</Typography>
+            <Typography variant="h6" className="brand brand-wordmark">{siteMeta.brand}</Typography>
             <Typography variant="caption" color="text.secondary" className="brand-subtitle">Flow-driven portfolio resume</Typography>
           </Box>
           <Stack direction="row" spacing={0.8} className="theme-switch" aria-label="主题切换">
@@ -2142,6 +2151,7 @@ export default function App() {
       <Box className="page-glow" />
       {unlocked ? (
         <>
+          <Box className="side-hint" aria-hidden="true">SCROLL / 探索更多</Box>
           <HeroScene />
           <DotGrid />
         </>

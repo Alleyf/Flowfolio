@@ -2167,3 +2167,126 @@ button {
 :root[data-theme="light"] .ticker-dot {
   background: rgba(31, 126, 168, 0.55);
 }
+
+/* ============================================================
+   quancy.cn-inspired layer: serif display title, split-line
+   char-rise reveal, neon tick on section titles, featured-item
+   image zoom-mask reveal, header serif wordmark
+   ============================================================ */
+
+:root {
+  --display-serif: "Playfair Display", "Georgia", "Times New Roman", "Songti SC", "STSong", serif;
+}
+
+/* --- 1. hero display title: large serif + per-char rise-in --- */
+.hero-display-title {
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-family: var(--display-serif);
+  font-weight: 500;
+  font-size: clamp(64px, 11vw, 150px);
+  line-height: 1.04;
+  letter-spacing: 0.01em;
+}
+
+.hero-display-title .char-up {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.08em; /* keep descenders visible during rise */
+}
+
+.hero-display-title .char-up > span {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: char-rise-in 0.9s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation-delay: calc(var(--ci) * 70ms + 150ms);
+}
+
+@keyframes char-rise-in {
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-display-title .char-up > span {
+    animation: none;
+    transform: translateY(0);
+  }
+}
+
+/* --- 2. section title neon tick (left accent bar) --- */
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.section-title-tick {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 34px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--cyan), rgba(110, 242, 255, 0.12));
+  box-shadow: 0 0 14px rgba(110, 242, 255, 0.55);
+}
+
+:root[data-theme="light"] .section-title-tick {
+  background: linear-gradient(180deg, #1f7ea8, rgba(31, 126, 168, 0.15));
+  box-shadow: 0 0 10px rgba(31, 126, 168, 0.35);
+}
+
+/* --- 3. featured-item image zoom-mask reveal (quancy style) --- */
+.featured-cover {
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.featured-cover img,
+.featured-cover .portfolio-cover {
+  transition: transform 0.85s cubic-bezier(0.19, 1, 0.22, 1);
+  will-change: transform;
+}
+
+.featured-item-card:hover .featured-cover img,
+.featured-item-card:hover .featured-cover .portfolio-cover {
+  transform: scale(1.045);
+}
+
+/* --- 4. header serif wordmark --- */
+.brand-wordmark {
+  font-family: var(--display-serif);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+/* --- 5. vertical side hint text (quancy left-edge scroll hint) --- */
+.side-hint {
+  position: fixed;
+  left: 18px;
+  bottom: 42px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  writing-mode: vertical-rl;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  color: rgba(157, 214, 236, 0.6);
+  pointer-events: none;
+}
+
+.side-hint::after {
+  content: "";
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(180deg, rgba(157, 214, 236, 0.7), transparent);
+  writing-mode: horizontal-tb;
+}
+
+:root[data-theme="light"] .side-hint {
+  color: rgba(31, 71, 106, 0.55);
+}
+
+@media (max-width: 960px) {
+  .side-hint { display: none; }
+}
