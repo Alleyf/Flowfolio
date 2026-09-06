@@ -1811,10 +1811,6 @@ export default function App() {
             <AgentLoop />
             <CommandHintList />
             <SkillTicker />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 4 }}>
-              <Button variant="contained" size="large" onClick={() => navigateTo(projectsSectionIndex)} startIcon={<BriefcaseBusiness size={18} />}>查看项目经历</Button>
-              <Button variant="outlined" size="large" onClick={() => navigateTo(portfolioSectionIndex)} startIcon={<Sparkles size={18} />}>浏览作品矩阵</Button>
-            </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
             <Card className="glass-card identity-panel">
