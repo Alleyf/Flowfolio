@@ -56,6 +56,185 @@ function normalizeArtCategoryName(name) {
   return name.replace(/[-_]+/g, " ").trim();
 }
 
+function WarpTunnel() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+
+    let disposed = false;
+    let cleanup = () => {};
+
+    import("three").then((THREE) => {
+      if (disposed) return;
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x04040a, 18, 90);
+      const camera = new THREE.PerspectiveCamera(72, el.clientWidth / el.clientHeight, 0.1, 220);
+      camera.position.set(0, 0, 26);
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+      renderer.setSize(el.clientWidth, el.clientHeight);
+      el.appendChild(renderer.domElement);
+
+      // ---------- radial warp streaks (quancy-style light rays) ----------
+      const STREAKS = 760;
+      const positions = new Float32Array(STREAKS * 2 * 3);
+      const aInfo = new Float32Array(STREAKS * 2 * 4); // radius, angle, speed, length
+      const aT = new Float32Array(STREAKS * 2);        // 0 = tail, 1 = head
+      for (let i = 0; i < STREAKS; i += 1) {
+        const radius = 2.4 + Math.random() * 46;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.55 + Math.random() * 1.75; // outward velocity
+        const length = 3.2 + Math.random() * 12.0; // streak length along radius
+        for (let v = 0; v < 2; v += 1) {
+          const o = (i * 2 + v) * 3;
+          positions[o] = 0;
+          positions[o + 1] = 0;
+          positions[o + 2] = 0;
+          const io = (i * 2 + v) * 4;
+          aInfo[io] = radius;
+          aInfo[io + 1] = angle;
+          aInfo[io + 2] = speed;
+          aInfo[io + 3] = length;
+          aT[i * 2 + v] = v; // tail=0, head=1
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("aInfo", new THREE.BufferAttribute(aInfo, 4));
+      geometry.setAttribute("aT", new THREE.BufferAttribute(aT, 1));
+
+      const uniforms = {
+        uTime: { value: 0 },
+        uPointer: { value: new THREE.Vector2(0, 0) }, // parallax offset
+        uWarp: { value: 1 },     // 1 = cruise, boosted while switching pages
+        uOpacity: { value: 1.05 },
+      };
+
+      const vertexShader = `
+        uniform float uTime;
+        uniform vec2 uPointer;
+        uniform float uWarp;
+        attribute vec4 aInfo;
+        attribute float aT;
+        varying float vFade;
+        varying float vWarm;
+        varying float vT;
+
+        void main(){
+          float radius = aInfo.x;
+          float angle = aInfo.y;
+          float speed = aInfo.z;
+          float len = aInfo.w;
+
+          // outward acceleration with per-streak phase; uWarp boosts during page switches
+          float r = mod(radius + uTime * speed * 6.0 * uWarp, 50.0) + 1.2;
+          float stretch = len * (0.35 + speed * 0.18) * (0.7 + uWarp * 0.5);
+          float vertexR = max(r - aT * stretch, 0.4);
+
+          vec3 p = vec3(cos(angle) * vertexR + uPointer.x * vertexR * 0.14,
+                        sin(angle) * vertexR + uPointer.y * vertexR * 0.14,
+                        -vertexR * 0.55);
+
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_Position = projectionMatrix * mv;
+
+          vFade = smoothstep(1.0, 7.0, r) * smoothstep(50.0, 24.0, r);
+          vWarm = smoothstep(30.0, 6.0, r);
+          vT = aT;
+        }
+      `;
+
+      const fragmentShader = `
+        uniform float uOpacity;
+        varying float vFade;
+        varying float vWarm;
+        varying float vT;
+        void main(){
+          // head bright, tail fades = motion-blur light streak
+          float along = mix(0.03, 1.25, vT);
+          vec3 pink = vec3(1.0, 0.18, 0.47);   // #ff2d78
+          vec3 blue = vec3(0.30, 0.65, 1.0);   // #4da6ff
+          vec3 col = mix(pink, blue, vWarm);
+          float alpha = along * vFade * uOpacity;
+          if (alpha < 0.01) discard;
+          gl_FragColor = vec4(col, alpha);
+        }
+      `;
+
+      const material = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader,
+        fragmentShader,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+
+      const streaks = new THREE.LineSegments(geometry, material);
+      scene.add(streaks);
+
+      let mouseX = 0;
+      let mouseY = 0;
+      let frame;
+      const clock = new THREE.Clock();
+
+      const onMove = (event) => {
+        mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+      };
+
+      const onResize = () => {
+        camera.aspect = el.clientWidth / el.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(el.clientWidth, el.clientHeight);
+        uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 1.75);
+      };
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("resize", onResize);
+
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const animate = () => {
+        frame = requestAnimationFrame(animate);
+        const t = reduced ? 12 : clock.getElapsedTime();
+        uniforms.uTime.value = t;
+        uniforms.uPointer.value.set(
+          uniforms.uPointer.value.x + (mouseX * 1.6 - uniforms.uPointer.value.x) * 0.04,
+          uniforms.uPointer.value.y + (-mouseY * 1.6 - uniforms.uPointer.value.y) * 0.04,
+        );
+        uniforms.uWarp.value += (1 - uniforms.uWarp.value) * 0.045;
+        streaks.rotation.z = Math.sin(t * 0.07) * 0.05;
+        camera.position.x += (Math.sin(t * 0.11) * 0.9 - camera.position.x) * 0.02;
+        camera.position.y += (Math.cos(t * 0.09) * 0.7 - camera.position.y) * 0.02;
+        renderer.render(scene, camera);
+      };
+
+      animate();
+
+      cleanup = () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("resize", onResize);
+        geometry.dispose();
+        material.dispose();
+        renderer.dispose();
+        if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
+      };
+    });
+
+    return () => {
+      disposed = true;
+      cleanup();
+    };
+  }, []);
+
+  return <Box ref={ref} className="warp-tunnel" />;
+}
+
 function HeroScene() {
   const ref = useRef(null);
 
@@ -923,7 +1102,6 @@ export default function App() {
   const [pendingSectionId, setPendingSectionId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
-  const touchStartSection = useRef(null);
   const artHoverRafRef = useRef(null);
   const toolboxRef = useRef(null);
   const unlockTimerRef = useRef(null);
@@ -1159,22 +1337,14 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [pendingSectionId, unlocked]);
 
-  const canSectionScroll = (section, direction) => {
-    if (!section) return false;
-    if (direction > 0) return section.scrollTop + section.clientHeight < section.scrollHeight - 2;
-    return section.scrollTop > 2;
-  };
-
   useEffect(() => {
     if (!unlocked) return undefined;
 
+    // quancy-style full-page hijack: wheel always flips pages, inner scroll disabled
     const onWheel = (event) => {
-      if (Math.abs(event.deltaY) < 28 || isTransitioning) return;
-      const section = event.target instanceof Element ? event.target.closest(".section-shell") : null;
-      const direction = event.deltaY > 0 ? 1 : -1;
-      if (canSectionScroll(section, direction)) return;
+      if (Math.abs(event.deltaY) < 24 || isTransitioning) return;
       event.preventDefault();
-      navigateTo(activeIndex + direction);
+      navigateTo(activeIndex + (event.deltaY > 0 ? 1 : -1));
     };
 
     const onKeyDown = (event) => {
@@ -1219,18 +1389,16 @@ export default function App() {
 
     const onTouchStart = (event) => {
       touchStartY.current = event.touches[0]?.clientY ?? null;
-      touchStartSection.current = event.target instanceof Element ? event.target.closest(".section-shell") : null;
     };
 
     const onTouchEnd = (event) => {
       if (touchStartY.current == null) return;
       const deltaY = touchStartY.current - (event.changedTouches[0]?.clientY ?? touchStartY.current);
       const direction = deltaY > 0 ? 1 : -1;
-      if (Math.abs(deltaY) > 70 && !canSectionScroll(touchStartSection.current, direction)) {
+      if (Math.abs(deltaY) > 70) {
         navigateTo(activeIndex + direction);
       }
       touchStartY.current = null;
-      touchStartSection.current = null;
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
@@ -2152,6 +2320,7 @@ export default function App() {
       {unlocked ? (
         <>
           <Box className="side-hint" aria-hidden="true">SCROLL / 探索更多</Box>
+          <WarpTunnel />
           <HeroScene />
           <DotGrid />
         </>

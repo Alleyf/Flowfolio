@@ -300,6 +300,7 @@ export const portfolioWorks = [
     subtitle: "AI-Native 知识星图工作室",
     kind: "Web App",
     repo: "https://github.com/Alleyf/MindScape",
+    demo: "https://mind-scape-tau.vercel.app/",
     image: "./doc/MindScape.webp",
     summary: "把 Markdown 笔记转化为可探索的思维星图：AI 隐喻、标签图谱、学习路线、参考文档预览——不是归档文章，而是在每次阅读时重新生成线索。",
     highlights: [
@@ -314,6 +315,7 @@ export const portfolioWorks = [
     subtitle: "Agnes AI 多模态在线演示平台",
     kind: "Web App",
     repo: "https://github.com/Alleyf/AgnesOnline",
+    demo: "https://alleyf.github.io/AgnesOnline/",
     image: "./doc/AgnesOnline.webp",
     summary: "一站式体验 Agnes AI 的文本对话、图像生成与视频创作能力，支持多服务商一键切换。",
     highlights: [
@@ -328,6 +330,7 @@ export const portfolioWorks = [
     subtitle: "本地照片擂台式选片工具",
     kind: "桌面应用",
     repo: "https://github.com/Alleyf/pianke",
+    downloadUrl: "https://github.com/Alleyf/pianke/releases/tag/v0.1.1",
     image: "./doc/pianke.webp",
     summary: "为摄影师设计的本地选片工具：相似照片自动归入“同一个瞬间”，再用左右 A/B 擂台 PK 快速挑出最满意的一张。",
     highlights: [

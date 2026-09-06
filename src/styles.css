@@ -2290,3 +2290,35 @@ button {
 @media (max-width: 960px) {
   .side-hint { display: none; }
 }
+
+/* ============================================================
+   warp-tunnel layer (quancy-style radial light streaks)
+   + full-page hijack: section inner scroll disabled
+   ============================================================ */
+
+.warp-tunnel {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
+  mask-image: radial-gradient(circle at 50% 46%, transparent 6%, rgba(0, 0, 0, 0.82) 38%, #000 74%);
+}
+
+:root[data-theme="light"] .warp-tunnel {
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+}
+
+/* full-page hijack: pages never scroll internally */
+.section-shell {
+  overflow-y: hidden;
+}
+
+.hero-scene {
+  opacity: 0.5; /* dim particle field so warp streaks lead */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warp-tunnel { display: none; }
+}
