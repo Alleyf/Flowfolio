@@ -25,6 +25,7 @@ import { generateSharePoster } from "./sharePoster";
 
 const WHEEL_SPEED = 0.00135; // progress units per deltaY px
 const TOUCH_SPEED = 0.0042;
+const DRAG_SPEED = 0.0042; // progress units per horizontal drag px
 const FADE_OUT = 0.22; // outgoing scene dissolve zone (exits fast, blurred)
 const FADE_IN = 0.34; // incoming scene arrival zone (starts late)
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -105,6 +106,8 @@ export default function CinematicApp() {
 
   /* pointer position (-1..1) for DOM parallax */
   const pointerRef = useRef({ x: 0, y: 0 });
+  /* active horizontal drag (drag-to-scrub) */
+  const dragRef = useRef(null);
 
   const setSceneEl = useCallback((i) => (el) => {
     sceneElsRef.current[i] = el;
@@ -361,15 +364,32 @@ export default function CinematicApp() {
     targetRef.current = clamp(s.start + s.w * (s.jump ?? 0.92), 0, TOTAL);
   }, []);
 
-  /* pointer tracking (DOM parallax) + click pulse (vignette + GL shockwave) */
+  /* pointer tracking (DOM parallax) + click pulse (vignette + GL shockwave)
+     + drag-to-scrub: hold and drag horizontally on empty space to scrub time */
   useEffect(() => {
     const onPointerMove = (e) => {
       pointerRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
       pointerRef.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+      if (dragRef.current) {
+        const dx = e.clientX - dragRef.current.x;
+        dragRef.current.x = e.clientX;
+        dragRef.current.moved += Math.abs(dx);
+        if (dragRef.current.moved > 4 && !inputBlocked()) {
+          if (!dragRef.current.active) {
+            dragRef.current.active = true;
+            rootRef.current?.classList.add("is-drag");
+          }
+          addProgress(dx * DRAG_SPEED);
+        }
+      }
     };
+    const DRAGABLE_SKIP = "a, button, input, textarea, [data-cursor], [data-no-drag]";
     let pulseTimer = 0;
     const onPointerDown = (e) => {
       glApiRef.current?.pulse(e.clientX, e.clientY);
+      if (!inputBlocked() && !e.target.closest(DRAGABLE_SKIP)) {
+        dragRef.current = { x: e.clientX, moved: 0, active: false };
+      }
       const root = rootRef.current;
       if (!root) return;
       root.style.setProperty("--pulse-x", `${((e.clientX / window.innerWidth) * 100).toFixed(1)}%`);
@@ -380,14 +400,29 @@ export default function CinematicApp() {
       clearTimeout(pulseTimer);
       pulseTimer = setTimeout(() => root.classList.remove("is-pulse"), 700);
     };
+    const onPointerUp = () => {
+      dragRef.current = null;
+      rootRef.current?.classList.remove("is-drag");
+    };
+    /* mark lightweight UI controls as magnetic targets for the cursor */
+    const markMagnets = () => {
+      document
+        .querySelectorAll(
+          ".toolbox-btn, .mode-chip, .art-cat-chip, .ctf-send, .ctl-arrow, .wr-arrow, .wv-arrow, .pp-btn, .pm-close, .boot-skip, .top-links a"
+        )
+        .forEach((el) => el.setAttribute("data-magnet", ""));
+    };
+    markMagnets();
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
       clearTimeout(pulseTimer);
     };
-  }, []);
+  }, [addProgress]);
 
   useEffect(() => {
     const onWheel = (e) => {

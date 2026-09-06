@@ -788,7 +788,7 @@ export default function SceneCanvas({ onApi }) {
         (-pointer.ty * 0.5 + 0.5) * window.innerHeight
       );
       if (hit) hitPoint.copy(hit);
-      const repelR = 1.7;
+      const repelR = 2.2;
       const repelOn = cur.op > 0.25 && !REDUCED;
 
       for (let i = 0; i < N; i++) {
@@ -804,7 +804,7 @@ export default function SceneCanvas({ onApi }) {
           const d2 = dx * dx + dy * dy + dz * dz;
           if (d2 < repelR * repelR && d2 > 1e-6) {
             const dd = Math.sqrt(d2);
-            const f = ((1 - dd / repelR) * 0.55) / dd;
+            const f = ((1 - dd / repelR) * 0.75) / dd;
             txp += dx * f;
             typ += dy * f;
             tzp += dz * f;
