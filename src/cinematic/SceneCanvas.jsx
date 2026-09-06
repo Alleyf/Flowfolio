@@ -313,6 +313,60 @@ export default function SceneCanvas({ onApi }) {
     const entity = new THREE.Points(geom, mat);
     scene.add(entity);
 
+    /* ---- living constellation web ----
+       faint accent lines continually re-knit between nearby "anchor"
+       particles of the entity — reads as an agent knowledge graph
+       breathing inside the swarm */
+    const CONS_N = IS_MOBILE ? 42 : 72;
+    const CONS_LINK_R = 1.15;
+    const CONS_MAX_SEG = IS_MOBILE ? 90 : 230;
+    const consIdx = [];
+    for (let i = 0; i < CONS_N; i++) {
+      consIdx.push(Math.floor(((i + Math.random() * 0.6) / CONS_N) * N) % N);
+    }
+    const consPos = new Float32Array(CONS_MAX_SEG * 6);
+    const consGeom = new THREE.BufferGeometry();
+    consGeom.setAttribute("position", new THREE.BufferAttribute(consPos, 3));
+    const consMat = new THREE.LineBasicMaterial({
+      color: ACCENT,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const consLines = new THREE.LineSegments(consGeom, consMat);
+    consLines.frustumCulled = false;
+    scene.add(consLines);
+
+    /* ---- velocity streaks ----
+       z-aligned segments around the camera axis; they flash as radial
+       warp lines only while the scroll velocity is high */
+    const STREAK_N = IS_MOBILE ? 50 : 130;
+    const streakPos = new Float32Array(STREAK_N * 6);
+    const streakMeta = [];
+    for (let i = 0; i < STREAK_N; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const rad = 1.2 + Math.random() * 5.5;
+      streakMeta.push({
+        x: Math.cos(ang) * rad,
+        y: Math.sin(ang) * rad * 0.62,
+        z: -5 + Math.random() * 11,
+        o: 0.35 + Math.random() * 0.65,
+      });
+    }
+    const streakGeom = new THREE.BufferGeometry();
+    streakGeom.setAttribute("position", new THREE.BufferAttribute(streakPos, 3));
+    const streakMat = new THREE.LineBasicMaterial({
+      color: 0xc9ccd2,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const streaks = new THREE.LineSegments(streakGeom, streakMat);
+    streaks.frustumCulled = false;
+    scene.add(streaks);
+
     /* faint wireframe core */
     const core = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.85, 1),
@@ -443,27 +497,56 @@ export default function SceneCanvas({ onApi }) {
     loopGroup.add(new THREE.Points(loopGeom, loopMat));
     scene.add(loopGroup);
 
-    /* dust field */
-    const dustCount = IS_MOBILE ? 420 : 900;
-    const dustPos = new Float32Array(dustCount * 3);
-    for (let i = 0; i < dustCount; i++) {
-      dustPos[i * 3] = (Math.random() - 0.5) * 30;
-      dustPos[i * 3 + 1] = (Math.random() - 0.5) * 14 + 1;
-      dustPos[i * 3 + 2] = -1 - Math.random() * 12;
+    /* ---- layered deep-space dust (parallax + tint depth) ----
+       three depths at different drift speeds, plus warm accent embers
+       and a few huge soft glow sprites for a nebula feel */
+    const makeStarLayer = (count, color, size, opacity, sx, sy, z0, z1) => {
+      const arr = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        arr[i * 3] = (Math.random() - 0.5) * sx;
+        arr[i * 3 + 1] = (Math.random() - 0.5) * sy + 1;
+        arr[i * 3 + 2] = z0 + Math.random() * (z1 - z0);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(arr, 3));
+      const m = new THREE.PointsMaterial({
+        color,
+        size,
+        map: dustTexture,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true,
+      });
+      return new THREE.Points(g, m);
+    };
+    const starsFar = makeStarLayer(IS_MOBILE ? 380 : 780, 0x6f7681, 0.07, 0.5, 34, 15, -17, -6);
+    const starsMid = makeStarLayer(IS_MOBILE ? 190 : 400, 0x9aa0a8, 0.12, 0.55, 26, 11, -9, -2);
+    const starsWarm = makeStarLayer(IS_MOBILE ? 60 : 130, 0xd8ff3e, 0.09, 0.16, 30, 13, -14, -3);
+    scene.add(starsFar, starsMid, starsWarm);
+
+    const GLOWS = IS_MOBILE ? 3 : 6;
+    const glowPos = new Float32Array(GLOWS * 3);
+    for (let i = 0; i < GLOWS; i++) {
+      glowPos[i * 3] = (Math.random() - 0.5) * 17;
+      glowPos[i * 3 + 1] = (Math.random() - 0.5) * 8 + 0.5;
+      glowPos[i * 3 + 2] = -6 - Math.random() * 8;
     }
-    const dustGeom = new THREE.BufferGeometry();
-    dustGeom.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-    const dustMat = new THREE.PointsMaterial({
-      color: 0x9aa0a8,
-      size: 0.09,
+    const glowGeom = new THREE.BufferGeometry();
+    glowGeom.setAttribute("position", new THREE.BufferAttribute(glowPos, 3));
+    const glowMat = new THREE.PointsMaterial({
+      color: 0x8a93a5,
+      size: 7.5,
       map: dustTexture,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.045,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
       sizeAttenuation: true,
     });
-    const dust = new THREE.Points(dustGeom, dustMat);
-    scene.add(dust);
+    const glows = new THREE.Points(glowGeom, glowMat);
+    scene.add(glows);
 
     /* ---- continuous state driven by global progress ---- */
     const cur = {
@@ -695,10 +778,63 @@ export default function SceneCanvas({ onApi }) {
       core.material.opacity = cur.op * 0.12;
       core.scale.setScalar(1 + Math.sin(t * 0.8) * 0.03);
 
-      dust.rotation.y += dt * 0.012;
-      dust.position.x = pointer.x * 0.5;
-      dust.position.y = -pointer.y * 0.3;
-      dustMat.opacity = 0.4;
+      /* layered dust — slow parallax drift + gentle bob + pointer sway */
+      starsFar.rotation.y += dt * 0.006;
+      starsMid.rotation.y -= dt * 0.011;
+      starsWarm.rotation.y += dt * 0.02;
+      starsFar.position.y = Math.sin(t * 0.12) * 0.4;
+      starsMid.position.y = Math.sin(t * 0.17 + 2) * 0.5;
+      starsWarm.position.y = Math.sin(t * 0.09 + 4) * 0.6;
+      starsMid.position.x = pointer.x * 0.5;
+      starsWarm.position.x = -pointer.x * 0.35;
+      glows.rotation.y += dt * 0.004;
+      glowMat.opacity = 0.035 + 0.02 * Math.sin(t * 0.5);
+
+      /* constellation web — re-knit each frame from live entity positions */
+      let seg = 0;
+      if (!REDUCED && cur.op > 0.12) {
+        const lr2 = CONS_LINK_R * CONS_LINK_R;
+        for (let a = 0; a < CONS_N && seg < CONS_MAX_SEG; a++) {
+          const ia = consIdx[a] * 3;
+          for (let b = a + 1; b < CONS_N && seg < CONS_MAX_SEG; b++) {
+            const ib = consIdx[b] * 3;
+            const dx = positions[ia] - positions[ib];
+            const dy = positions[ia + 1] - positions[ib + 1];
+            const dz = positions[ia + 2] - positions[ib + 2];
+            if (dx * dx + dy * dy + dz * dz < lr2) {
+              const o = seg * 6;
+              consPos[o] = positions[ia];
+              consPos[o + 1] = positions[ia + 1];
+              consPos[o + 2] = positions[ia + 2];
+              consPos[o + 3] = positions[ib];
+              consPos[o + 4] = positions[ib + 1];
+              consPos[o + 5] = positions[ib + 2];
+              seg++;
+            }
+          }
+        }
+      }
+      consGeom.setDrawRange(0, seg * 2);
+      consGeom.attributes.position.needsUpdate = true;
+      consMat.opacity = cur.op * (0.09 + 0.045 * Math.sin(t * 1.7));
+
+      /* velocity streaks — radial warp lines while scrolling fast */
+      const sv = Math.min((Math.abs(v) * 0.9), 1);
+      streakMat.opacity = sv * 0.3;
+      if (sv > 0.02) {
+        const sl = 0.4 + sv * 2.6;
+        for (let i = 0; i < STREAK_N; i++) {
+          const m = streakMeta[i];
+          const o = i * 6;
+          streakPos[o] = m.x;
+          streakPos[o + 1] = m.y;
+          streakPos[o + 2] = m.z;
+          streakPos[o + 3] = m.x;
+          streakPos[o + 4] = m.y;
+          streakPos[o + 5] = m.z + sl * m.o;
+        }
+        streakGeom.attributes.position.needsUpdate = true;
+      }
 
       renderer.render(scene, camera);
     };
