@@ -3,10 +3,11 @@ import * as THREE from "three";
 import { SCENES } from "./scenes";
 
 /* ------------------------------------------------------------------ */
-/* Flowfolio — Cinematic WebGL Stage (continuous)                      */
-/* One morphing particle entity + dust; camera glides along a          */
-/* scroll-driven path through per-scene waypoints. No page flips —     */
-/* the stage is a continuous function of global progress 0..TOTAL.     */
+/* Flowfolio — Cinematic WebGL Stage (continuous, interactive)         */
+/* One morphing particle entity + orbiting sparks + dust; the camera   */
+/* glides along a scroll-driven path. Scroll VELOCITY drives dolly +   */
+/* roll + particle surge; the pointer repels particles; clicks fire a  */
+/* shockwave through the entity. Pure function of global progress.     */
 /* ------------------------------------------------------------------ */
 
 const IS_MOBILE =
@@ -18,25 +19,26 @@ const REDUCED =
 
 const ACCENT = new THREE.Color("#d8ff3e");
 const BODY = new THREE.Color("#c9ccd2");
+const HOT = new THREE.Color("#ff7a3c"); // ember sparks
 
 /* per-scene camera / atmosphere waypoints (index-aligned with SCENES) */
 const WAYPOINTS = [
   // 00 PROFILE — entity stands right of the giant type
-  { pos: [0, 0.1, 7.6], look: [-1.55, 0.1, 0], fov: 48, op: 0.95 },
+  { pos: [0, 0.1, 7.6], look: [-1.55, 0.1, 0], fov: 48, op: 0.95, roll: 0.0, tint: 0.0 },
   // 01 EDUCATION — camera slides left, entity dims into a timeline ribbon
-  { pos: [-1.1, 0.35, 8.4], look: [0.9, 0.05, 0], fov: 50, op: 0.55 },
-  // 02 EXPERIENCE — dissolve into agent clusters
-  { pos: [0, 0.5, 6.6], look: [0, -0.05, 0], fov: 58, op: 0.9 },
+  { pos: [-1.1, 0.35, 8.4], look: [0.9, 0.05, 0], fov: 50, op: 0.55, roll: 0.035, tint: 0.05 },
+  // 02 EXPERIENCE — dissolve into agent clusters, embers rise
+  { pos: [0, 0.5, 6.6], look: [0, -0.05, 0], fov: 58, op: 0.9, roll: -0.05, tint: 0.4 },
   // 03 SKILLS — camera pushes inside the field
-  { pos: [0, 0, 5.2], look: [0, 0, -0.6], fov: 62, op: 0.85 },
+  { pos: [0, 0, 5.2], look: [0, 0, -0.6], fov: 62, op: 0.85, roll: 0.04, tint: 0.35 },
   // 04 PROJECTS — entity recedes far right behind the editorial slides
-  { pos: [2.3, 0.2, 9.0], look: [-1.5, 0, 0], fov: 46, op: 0.35 },
+  { pos: [2.3, 0.2, 9.0], look: [-1.5, 0, 0], fov: 46, op: 0.35, roll: 0.0, tint: 0.08 },
   // 05 WORKS — far left
-  { pos: [-2.1, 0.1, 9.2], look: [1.3, 0, 0], fov: 46, op: 0.3 },
+  { pos: [-2.1, 0.1, 9.2], look: [1.3, 0, 0], fov: 46, op: 0.3, roll: -0.03, tint: 0.06 },
   // 06 WRITING — dim backdrop behind the editorial list
-  { pos: [0, -0.2, 9.4], look: [0, 0.1, 0], fov: 50, op: 0.26 },
+  { pos: [0, -0.2, 9.4], look: [0, 0.1, 0], fov: 50, op: 0.26, roll: 0.02, tint: 0.05 },
   // 07 CONTACT — the entity returns, centered, closing the loop
-  { pos: [0, 0.15, 7.4], look: [0, 0.05, 0], fov: 50, op: 0.9 },
+  { pos: [0, 0.15, 7.4], look: [0, 0.05, 0], fov: 50, op: 0.9, roll: 0.0, tint: 0.0 },
 ];
 
 /* --------------------- particle formations ------------------------ */
@@ -141,18 +143,29 @@ const P_VERT = /* glsl */ `
   uniform float uReveal;
   uniform float uSize;
   uniform float uPR;
+  uniform float uVel;
+  uniform float uClickT;
+  uniform vec3 uClickPos;
   varying float vRand;
   void main() {
     vRand = aRand;
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    /* click shockwave — expanding ring pushes particles outward */
+    float dc = distance(wp.xyz, uClickPos);
+    float wave = sin(dc * 5.0 - uClickT * 9.0) * exp(-uClickT * 2.4) * exp(-dc * 0.5);
+    wp.xyz += normalize(wp.xyz - uClickPos + vec3(0.001)) * wave * 0.55;
+    vec4 mv = viewMatrix * wp;
     float show = step(aRand, uReveal);
-    gl_PointSize = uSize * uPR * (6.0 / max(0.1, -mv.z)) * show;
+    float surge = 1.0 + min(abs(uVel) * 2.2, 1.5);   /* fast scroll = particles swell */
+    gl_PointSize = uSize * uPR * (6.0 / max(0.1, -mv.z)) * show * surge;
     gl_Position = projectionMatrix * mv;
   }
 `;
 
 const P_FRAG = /* glsl */ `
   uniform float uOpacity;
+  uniform float uTime;
+  uniform float uTintMix;
   uniform vec3 uColor;
   uniform vec3 uAccent;
   varying float vRand;
@@ -161,8 +174,9 @@ const P_FRAG = /* glsl */ `
     float d = length(c);
     if (d > 0.5) discard;
     float a = smoothstep(0.5, 0.08, d);
-    vec3 col = mix(uColor, uAccent, step(0.985, vRand));
-    gl_FragColor = vec4(col, a * uOpacity * (0.35 + 0.65 * vRand));
+    float tw = 0.72 + 0.28 * sin(uTime * (1.2 + vRand * 3.2) + vRand * 40.0); /* twinkle */
+    vec3 col = mix(uColor, uAccent, step(0.985 - uTintMix * 0.28, vRand));
+    gl_FragColor = vec4(col, a * uOpacity * (0.35 + 0.65 * vRand) * tw);
   }
 `;
 
@@ -247,6 +261,11 @@ export default function SceneCanvas({ onApi }) {
         uPR: { value: pixelRatio },
         uColor: { value: BODY },
         uAccent: { value: ACCENT },
+        uTime: { value: 0 },
+        uVel: { value: 0 },
+        uTintMix: { value: 0 },
+        uClickT: { value: 99 },
+        uClickPos: { value: new THREE.Vector3(0, 0, 0) },
       },
     });
     const entity = new THREE.Points(geom, mat);
@@ -265,8 +284,37 @@ export default function SceneCanvas({ onApi }) {
     );
     scene.add(core);
 
-    /* dust field */
+    /* soft round sprite shared by sparks + dust */
     const dustTexture = makeDustSprite();
+
+    /* orbiting ember sparks — larger accent particles on wide orbits */
+    const SPARKS = IS_MOBILE ? 26 : 60;
+    const sparkPos = new Float32Array(SPARKS * 3);
+    const sparkMeta = [];
+    for (let i = 0; i < SPARKS; i++) {
+      sparkMeta.push({
+        r: 2.4 + Math.random() * 3.2,
+        tilt: (Math.random() - 0.5) * 1.4,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.08 + Math.random() * 0.22,
+      });
+    }
+    const sparkGeom = new THREE.BufferGeometry();
+    sparkGeom.setAttribute("position", new THREE.BufferAttribute(sparkPos, 3));
+    const sparkMat = new THREE.PointsMaterial({
+      color: 0xd8ff3e,
+      size: 0.14,
+      map: dustTexture,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+    const sparks = new THREE.Points(sparkGeom, sparkMat);
+    scene.add(sparks);
+
+    /* dust field */
     const dustCount = IS_MOBILE ? 420 : 900;
     const dustPos = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount; i++) {
@@ -294,10 +342,14 @@ export default function SceneCanvas({ onApi }) {
       look: new THREE.Vector3(...WAYPOINTS[0].look),
       fov: WAYPOINTS[0].fov,
       op: 0,
+      roll: 0,
+      tint: 0,
     };
     let progress = 0; // smoothed global progress
     let progressTarget = 0;
     let firstFrame = true;
+    let velTarget = 0;
+    let velSm = 0;
 
     const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     const onPointerMove = (e) => {
@@ -343,19 +395,39 @@ export default function SceneCanvas({ onApi }) {
       );
       out.fov = lerp(a.fov, b.fov, t);
       out.op = lerp(a.op, b.op, t);
+      out.roll = lerp(a.roll, b.roll, t);
+      out.tint = lerp(a.tint, b.tint, t);
     };
     const blended = {
       pos: new THREE.Vector3(),
       look: new THREE.Vector3(),
       fov: 48,
       op: 1,
+      roll: 0,
+      tint: 0,
     };
     function applyWp(out, w) {
       out.pos.set(...w.pos);
       out.look.set(...w.look);
       out.fov = w.fov;
       out.op = w.op;
+      out.roll = w.roll;
+      out.tint = w.tint;
     }
+
+    /* pointer -> world position on the z=0 plane (for repulsion + shockwave) */
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    const hitPoint = new THREE.Vector3(0, 0, 5); // default far away-ish
+    const planeHit = (cx, cy) => {
+      ndc.set((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+      raycaster.setFromCamera(ndc, camera);
+      const dz = raycaster.ray.direction.z;
+      if (Math.abs(dz) < 1e-4) return null;
+      const t = -raycaster.ray.origin.z / dz;
+      if (t <= 0) return null;
+      return raycaster.ray.origin.clone().addScaledVector(raycaster.ray.direction, t);
+    };
 
     const clock = new THREE.Clock();
     const tmp = new THREE.Vector3();
@@ -383,11 +455,19 @@ export default function SceneCanvas({ onApi }) {
         camera.updateProjectionMatrix();
       }
       cur.op += (blended.op - cur.op) * k;
+      cur.roll += (blended.roll - cur.roll) * k;
+      cur.tint += (blended.tint - cur.tint) * k;
 
       pointer.x += (pointer.tx - pointer.x) * 0.04;
       pointer.y += (pointer.ty - pointer.y) * 0.04;
       camera.position.x += pointer.x * 0.28;
       camera.position.y += -pointer.y * 0.16;
+
+      /* scroll velocity — dolly punch + camera roll (handheld feel) */
+      velSm += (velTarget - velSm) * Math.min(1, dt * 5);
+      const v = REDUCED ? 0 : velSm;
+      camera.position.z += Math.min(Math.abs(v) * 2.5, 1.2) * Math.sign(v || 1);
+      camera.rotation.z += cur.roll + Math.max(-0.06, Math.min(0.06, v * 0.35));
 
       /* particle morph — formation blend follows the same progress curve */
       const n = formations.length;
@@ -398,14 +478,61 @@ export default function SceneCanvas({ onApi }) {
       const ft = smooth(Math.max(0, Math.min(1, (progress - c0) / (c1 - c0))));
       const fa = formations[fi];
       const fb = formations[fi + 1];
-      for (let j = 0; j < N * 3; j++) {
-        target[j] = fa[j] + (fb[j] - fa[j]) * ft;
+
+      /* pointer world position for repulsion (stronger when entity visible) */
+      const hit = planeHit(
+        (pointer.tx * 0.5 + 0.5) * window.innerWidth,
+        (-pointer.ty * 0.5 + 0.5) * window.innerHeight
+      );
+      if (hit) hitPoint.copy(hit);
+      const repelR = 1.7;
+      const repelOn = cur.op > 0.25 && !REDUCED;
+
+      for (let i = 0; i < N; i++) {
+        const j = i * 3;
+        let txp = fa[j] + (fb[j] - fa[j]) * ft;
+        let typ = fa[j + 1] + (fb[j + 1] - fa[j + 1]) * ft;
+        let tzp = fa[j + 2] + (fb[j + 2] - fa[j + 2]) * ft;
+
+        if (repelOn) {
+          const dx = positions[j] - hitPoint.x;
+          const dy = positions[j + 1] - hitPoint.y;
+          const dz = positions[j + 2] - hitPoint.z;
+          const d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 < repelR * repelR && d2 > 1e-6) {
+            const dd = Math.sqrt(d2);
+            const f = ((1 - dd / repelR) * 0.55) / dd;
+            txp += dx * f;
+            typ += dy * f;
+            tzp += dz * f;
+          }
+        }
+        target[j] = txp;
+        target[j + 1] = typ;
+        target[j + 2] = tzp;
         positions[j] += (target[j] - positions[j]) * k;
+        positions[j + 1] += (target[j + 1] - positions[j + 1]) * k;
+        positions[j + 2] += (target[j + 2] - positions[j + 2]) * k;
       }
       geom.attributes.position.needsUpdate = true;
 
       entity.rotation.y = Math.sin(t * 0.07) * 0.25 + progress * 0.12;
       mat.uniforms.uOpacity.value = cur.op;
+      mat.uniforms.uTime.value = t;
+      mat.uniforms.uVel.value = v * 0.12;
+      mat.uniforms.uTintMix.value = cur.tint;
+      mat.uniforms.uClickT.value += dt;
+
+      /* ember sparks on wide orbits */
+      for (let i = 0; i < SPARKS; i++) {
+        const m = sparkMeta[i];
+        const a = m.phase + t * m.speed;
+        sparkPos[i * 3] = Math.cos(a) * m.r;
+        sparkPos[i * 3 + 1] = Math.sin(a * 0.8 + m.phase) * m.r * 0.35 + Math.sin(m.tilt) * 1.4;
+        sparkPos[i * 3 + 2] = Math.sin(a) * m.r * 0.6 - 1;
+      }
+      sparkGeom.attributes.position.needsUpdate = true;
+      sparkMat.opacity = (0.35 + 0.4 * cur.tint + cur.op * 0.2) * (0.8 + 0.2 * Math.sin(t * 2.3));
 
       core.rotation.y -= dt * 0.05;
       core.rotation.x = Math.sin(t * 0.11) * 0.2;
@@ -413,6 +540,8 @@ export default function SceneCanvas({ onApi }) {
       core.scale.setScalar(1 + Math.sin(t * 0.8) * 0.03);
 
       dust.rotation.y += dt * 0.012;
+      dust.position.x = pointer.x * 0.5;
+      dust.position.y = -pointer.y * 0.3;
       dustMat.opacity = 0.4;
 
       renderer.render(scene, camera);
@@ -424,8 +553,18 @@ export default function SceneCanvas({ onApi }) {
         progressTarget = Math.max(0, Math.min(SCENES[SCENES.length - 1].end, p));
         if (REDUCED) progress = progressTarget;
       },
+      setVelocity(v) {
+        velTarget = Math.max(-3, Math.min(3, v));
+      },
       setReveal(r) {
         mat.uniforms.uReveal.value = Math.max(0, Math.min(1, r));
+      },
+      pulse(clientX, clientY) {
+        if (REDUCED) return;
+        const p = planeHit(clientX, clientY);
+        if (!p) return;
+        mat.uniforms.uClickPos.value.copy(p);
+        mat.uniforms.uClickT.value = 0;
       },
     };
     onApi && onApi(api);

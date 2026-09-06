@@ -1513,3 +1513,147 @@ ul {
     animation: none;
   }
 }
+
+/* ==================== round-3: cuts & rich interaction ==================== */
+
+/* --- chapter wipe: sweeps across the frame at every scene cut --- */
+.chapter-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  animation: cw-out 1.05s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  overflow: hidden;
+}
+.chapter-wipe::before {
+  content: "";
+  position: absolute;
+  left: -20%;
+  top: 0;
+  bottom: 0;
+  width: 16%;
+  background: linear-gradient(90deg, transparent, rgba(216, 255, 62, 0.07), transparent);
+  animation: cw-sweep 1.05s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+.cw-num {
+  position: absolute;
+  right: 4vw;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(140px, 24vw, 380px);
+  font-weight: 800;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(242, 242, 238, 0.16);
+  animation: cw-num 1.05s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+.cw-name {
+  position: absolute;
+  right: 5.4vw;
+  top: 50%;
+  transform: translateY(-140%);
+  font-size: 11px;
+  letter-spacing: 0.42em;
+  color: rgba(216, 255, 62, 0.75);
+  animation: cw-num 1.05s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+@keyframes cw-out {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes cw-sweep {
+  from { left: -20%; }
+  to { left: 110%; }
+}
+@keyframes cw-num {
+  0% { transform: translateY(-50%) translateX(60px); opacity: 0; }
+  18% { transform: translateY(-50%) translateX(0); opacity: 1; }
+  75% { transform: translateY(-50%) translateX(0); opacity: 1; }
+  100% { transform: translateY(-50%) translateX(-50px); opacity: 0; }
+}
+.cw-name { animation-name: cw-name; }
+@keyframes cw-name {
+  0% { transform: translateY(-140%) translateX(40px); opacity: 0; }
+  20% { transform: translateY(-140%) translateX(0); opacity: 1; }
+  75% { opacity: 1; }
+  100% { transform: translateY(-140%) translateX(-30px); opacity: 0; }
+}
+
+/* --- click pulse: a soft accent vignette breathing out from the click --- */
+.cinema.is-pulse::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--pulse-x, 50%) var(--pulse-y, 50%),
+    rgba(216, 255, 62, 0.05), transparent 42%);
+  animation: click-pulse 0.7s ease-out forwards;
+}
+@keyframes click-pulse {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.12); }
+}
+
+/* --- rail: hover reveals the chapter name; active grows a tick --- */
+.scene-index button {
+  position: relative;
+  transition: opacity 0.3s var(--ease), color 0.3s var(--ease), letter-spacing 0.3s var(--ease);
+}
+.scene-index button::after {
+  content: attr(data-name);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.scene-index button:hover::after,
+.scene-index button.on::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+.scene-index button.on::after { color: var(--accent); }
+
+/* --- scroll hint: wheel dot animation; hidden once the user scrolls --- */
+.scroll-hint { display: inline-flex; align-items: center; gap: 10px; transition: opacity 0.6s var(--ease); }
+.hint-wheel {
+  width: 14px;
+  height: 22px;
+  border: 1px solid rgba(242, 242, 238, 0.4);
+  border-radius: 8px;
+  position: relative;
+  display: inline-block;
+}
+.hint-wheel::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 2px;
+  height: 5px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: hint-dot 1.6s ease-in-out infinite;
+}
+@keyframes hint-dot {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+.cinema.is-scrolled .scroll-hint { opacity: 0; }
+
+/* --- scenes filter transitions must not clash with rv children --- */
+.scene { will-change: opacity, transform, filter; }
