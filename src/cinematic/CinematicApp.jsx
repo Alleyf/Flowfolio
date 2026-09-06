@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Share2, X } from "lucide-react";
 import SceneCanvas from "./SceneCanvas";
 import Cursor from "./Cursor";
 import BootOverlay from "./sections/BootOverlay";
@@ -12,6 +13,7 @@ import WritingScene from "./sections/WritingScene";
 import ContactScene from "./sections/ContactScene";
 import { SCENES, TOTAL, sceneAt } from "./scenes";
 import { contactConfig, projectExperiences } from "../config/siteConfig";
+import { generateSharePoster } from "./sharePoster";
 
 /* ------------------------------------------------------------------ */
 /* CinematicApp — continuous scroll-driven stage                       */
@@ -36,8 +38,14 @@ export default function CinematicApp() {
   const targetRef = useRef(SCENES[0].w * 0.5); // start mid-profile so hero is revealed
   const bootedRef = useRef(false);
   const viewerOpenRef = useRef(false);
+  const modalOpenRef = useRef(false);
   const rootRef = useRef(null);
   const scrolledRef = useRef(false);
+
+  /* share poster state */
+  const [poster, setPoster] = useState(null);
+  const [posterBusy, setPosterBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const sceneElsRef = useRef([]); // scene root elements
   const rvRef = useRef({}); // sceneIdx -> [{el, th}]
@@ -201,7 +209,7 @@ export default function CinematicApp() {
 
   /* ---------------------------- input ------------------------------ */
   const addProgress = useCallback((delta) => {
-    if (!bootedRef.current || viewerOpenRef.current) return;
+    if (!bootedRef.current || inputBlocked()) return;
     targetRef.current = clamp(targetRef.current + delta, 0, TOTAL);
     if (!scrolledRef.current && rootRef.current) {
       scrolledRef.current = true;
@@ -212,6 +220,69 @@ export default function CinematicApp() {
   useEffect(() => {
     bootedRef.current = booted;
   }, [booted]);
+
+  /* ------------------------- share poster -------------------------- */
+  useEffect(() => {
+    modalOpenRef.current = poster !== null || posterBusy;
+  }, [poster, posterBusy]);
+
+  useEffect(() => {
+    if (poster === null) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setPoster((previous) => {
+          if (previous) URL.revokeObjectURL(previous);
+          return null;
+        });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [poster]);
+
+  const doGeneratePoster = useCallback(async () => {
+    if (posterBusy) return;
+    setPosterBusy(true);
+    try {
+      const url = await generateSharePoster();
+      if (url) setPoster(url);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPosterBusy(false);
+    }
+  }, [posterBusy]);
+
+  const closePoster = useCallback(() => {
+    setPoster((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return null;
+    });
+  }, []);
+
+  const copyPoster = useCallback(async () => {
+    if (!poster || !window.ClipboardItem || !navigator.clipboard?.write) return;
+    try {
+      const response = await fetch(poster);
+      const blob = await response.blob();
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2400);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [poster]);
+
+  const downloadPoster = useCallback(() => {
+    if (!poster) return;
+    const anchor = document.createElement("a");
+    anchor.href = poster;
+    anchor.download = `flowfolio-share-${Date.now()}.png`;
+    anchor.click();
+  }, [poster]);
+
+  /* any modal (works viewer / poster) freezes scroll input */
+  const inputBlocked = useCallback(() => viewerOpenRef.current || modalOpenRef.current, []);
 
   /* rail click — glide to the scene through intermediate film frames;
      land late enough in the span that staged content is fully revealed */
@@ -251,7 +322,7 @@ export default function CinematicApp() {
 
   useEffect(() => {
     const onWheel = (e) => {
-      if (!bootedRef.current || viewerOpenRef.current) return;
+      if (!bootedRef.current || inputBlocked()) return;
       e.preventDefault();
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
       if (Math.abs(delta) < 2) return;
@@ -259,7 +330,7 @@ export default function CinematicApp() {
     };
 
     const onKeyDown = (e) => {
-      if (!bootedRef.current || viewerOpenRef.current) return;
+      if (!bootedRef.current || inputBlocked()) return;
       const k = e.key;
       if (k === "ArrowDown" || k === "PageDown" || k === " ") {
         e.preventDefault();
@@ -394,6 +465,53 @@ export default function CinematicApp() {
       <div className="progress-line" aria-hidden="true">
         <i ref={progressBarRef} />
       </div>
+
+      {/* floating toolbox — share poster */}
+      <div className="float-toolbox">
+        <button
+          type="button"
+          className={posterBusy ? "toolbox-btn active mono" : "toolbox-btn mono"}
+          onClick={doGeneratePoster}
+          disabled={posterBusy}
+          aria-label="生成分享海报"
+          title="生成分享海报"
+          data-cursor="SHARE"
+        >
+          <Share2 size={16} />
+        </button>
+      </div>
+
+      {posterBusy && (
+        <div className="poster-modal" role="dialog" aria-modal="true" aria-label="正在生成分享海报">
+          <div className="poster-gen mono">
+            <i className="pg-spinner" aria-hidden="true" />
+            <span>正在生成分享海报</span>
+            <p>请稍等片刻，海报会自动弹出预览。生成过程中你也可以按 ESC 关闭提示窗。</p>
+          </div>
+        </div>
+      )}
+
+      {poster && (
+        <div className="poster-modal" role="dialog" aria-modal="true" aria-label="分享海报预览">
+          <button type="button" className="pm-close" onClick={closePoster} aria-label="关闭">
+            <X size={20} />
+          </button>
+          <div className="poster-preview mono">
+            <div className="pp-head">
+              <h4>分享海报预览</h4>
+              <div className="pp-actions">
+                <button type="button" className="pp-btn" onClick={copyPoster}>
+                  {copied ? "已复制 ✓" : "复制海报图片"}
+                </button>
+                <button type="button" className="pp-btn accent" onClick={downloadPoster}>
+                  下载海报
+                </button>
+              </div>
+            </div>
+            <img src={poster} alt="分享海报预览" className="pp-image" />
+          </div>
+        </div>
+      )}
 
       <div className="grain" aria-hidden="true" />
       <Cursor />
