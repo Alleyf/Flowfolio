@@ -57,6 +57,27 @@ for (let i = 0; i < WAYPOINTS.length; i++) {
   WAYPOINTS[i].accent = new THREE.Color(WAYPOINTS[i].accent);
 }
 
+/* per-chapter entity behaviour — every chapter gives the central swarm
+   its own personality: spin axes, wobble life, breathing pulse */
+const ACT = [
+  // 00 profile — stately sphere, slow turn, gentle breath
+  { ry: 0.1, rx: 0.022, rz: 0.0, wobble: 0.1, pulse: 0.02, pf: 1.1 },
+  // 01 education — helix reels like a film spool
+  { ry: 0.5, rx: 0.0, rz: 0.0, wobble: 0.05, pulse: 0.012, pf: 0.8 },
+  // 02 experience — agent clusters seethe and churn
+  { ry: 0.06, rx: 0.11, rz: 0.05, wobble: 0.24, pulse: 0.05, pf: 1.7 },
+  // 03 skills — wide field shimmering in place
+  { ry: 0.018, rx: 0.0, rz: 0.0, wobble: 0.17, pulse: 0.03, pf: 0.6 },
+  // 04 projects — torus knot tumbles on two axes
+  { ry: 0.24, rx: 0.15, rz: 0.0, wobble: 0.05, pulse: 0.015, pf: 1.3 },
+  // 05 works — the wall stands almost still, steady presence
+  { ry: 0.045, rx: 0.0, rz: 0.008, wobble: 0.03, pulse: 0.008, pf: 0.9 },
+  // 06 writing — the stream ripples and flows
+  { ry: 0.03, rx: 0.0, rz: 0.0, wobble: 0.32, pulse: 0.022, pf: 2.2 },
+  // 07 contact — halo spins up to greet you
+  { ry: 0.38, rx: 0.03, rz: 0.0, wobble: 0.08, pulse: 0.03, pf: 1.4 },
+];
+
 /* --------------------- particle formations ------------------------ */
 /* 8 target formations; the entity morphs between them as you scroll. */
 
@@ -162,10 +183,19 @@ const P_VERT = /* glsl */ `
   uniform float uVel;
   uniform float uClickT;
   uniform vec3 uClickPos;
+  uniform float uTime;
+  uniform float uWobble;
+  uniform float uBurst;
   varying float vRand;
   void main() {
     vRand = aRand;
-    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vec3 p = position;
+    /* per-chapter life — breathing wobble along each particle's own ray */
+    float wob = sin(uTime * (1.4 + aRand * 2.6) + aRand * 61.0);
+    p += normalize(p + vec3(0.001)) * wob * uWobble * (0.35 + 0.65 * aRand);
+    /* chapter-cut burst — the swarm briefly scatters then re-forms */
+    p += normalize(p + vec3(0.001)) * uBurst * (0.4 + 0.6 * aRand) * 1.15;
+    vec4 wp = modelMatrix * vec4(p, 1.0);
     /* click shockwave — expanding ring pushes particles outward */
     float dc = distance(wp.xyz, uClickPos);
     float wave = sin(dc * 5.0 - uClickT * 9.0) * exp(-uClickT * 2.4) * exp(-dc * 0.5);
@@ -326,6 +356,8 @@ export default function SceneCanvas({ onApi }) {
         uTintMix: { value: 0 },
         uClickT: { value: 99 },
         uClickPos: { value: new THREE.Vector3(0, 0, 0) },
+        uWobble: { value: 0.1 },
+        uBurst: { value: 0 },
       },
     });
     const entity = new THREE.Points(geom, mat);
@@ -578,6 +610,8 @@ export default function SceneCanvas({ onApi }) {
       accent: new THREE.Color(WAYPOINTS[0].accent),
       scale: WAYPOINTS[0].scale,
     };
+    /* per-chapter entity behaviour, smoothly chased each frame */
+    const actCur = { ...ACT[0] };
     let progress = 0; // smoothed global progress
     let progressTarget = 0;
     let firstFrame = true;
@@ -696,7 +730,7 @@ export default function SceneCanvas({ onApi }) {
       while (gi < WAYPOINTS.length - 1 && progress > SCENES[gi].end) gi++;
       const gNext = Math.min(WAYPOINTS.length - 1, gi + 1);
       const gsw = smooth(
-        Math.max(0, Math.min(1, (progress - (SCENES[gNext].start - 0.35)) / 0.7))
+        Math.max(0, Math.min(1, (progress - (SCENES[gNext].start - 0.2)) / 0.4))
       );
       blended.bg.copy(WAYPOINTS[gi].bg).lerp(WAYPOINTS[gNext].bg, gsw);
       blended.accent.copy(WAYPOINTS[gi].accent).lerp(WAYPOINTS[gNext].accent, gsw);
@@ -727,7 +761,6 @@ export default function SceneCanvas({ onApi }) {
       consMat.color.copy(cur.accent);
       sparkMat.color.copy(cur.accent);
       core.material.color.copy(cur.accent);
-      entity.scale.setScalar(cur.scale);
       core.scale.setScalar(cur.scale * (1 + Math.sin(t * 0.8) * 0.03));
 
       pointer.x += (pointer.tx - pointer.x) * 0.04;
@@ -741,15 +774,13 @@ export default function SceneCanvas({ onApi }) {
       camera.position.z += Math.min(Math.abs(v) * 2.5, 1.2) * Math.sign(v || 1);
       camera.rotation.z += cur.roll + Math.max(-0.06, Math.min(0.06, v * 0.35));
 
-      /* particle morph — formation blend follows the same progress curve */
-      const n = formations.length;
-      let fi = 0;
-      while (fi < n - 2 && progress > SCENES[fi + 1].center) fi++;
-      const c0 = SCENES[fi].center;
-      const c1 = SCENES[fi + 1].center;
-      const ft = smooth(Math.max(0, Math.min(1, (progress - c0) / (c1 - c0))));
-      const fa = formations[fi];
-      const fb = formations[fi + 1];
+      /* particle morph — LUT cut, synced with the color grade: each
+         chapter holds its own formation and the swarm re-forms only in
+         the same swap window the palette uses (with a mid-cut burst) */
+      const fa = formations[gi];
+      const fb = formations[gNext];
+      const ft = gsw;
+      mat.uniforms.uBurst.value = Math.sin(gsw * Math.PI) * 0.55;
 
       /* pointer world position for repulsion (stronger when entity visible) */
       const hit = planeHit(
@@ -788,7 +819,21 @@ export default function SceneCanvas({ onApi }) {
       }
       geom.attributes.position.needsUpdate = true;
 
-      entity.rotation.y = Math.sin(t * 0.07) * 0.25 + progress * 0.12;
+      /* per-chapter personality — spin style, wobble and pulse blend on
+         the same grade window, then accumulate every frame */
+      const A0 = ACT[gi];
+      const A1 = ACT[gNext];
+      actCur.ry += (lerp(A0.ry, A1.ry, gsw) - actCur.ry) * k;
+      actCur.rx += (lerp(A0.rx, A1.rx, gsw) - actCur.rx) * k;
+      actCur.rz += (lerp(A0.rz, A1.rz, gsw) - actCur.rz) * k;
+      actCur.wobble += (lerp(A0.wobble, A1.wobble, gsw) - actCur.wobble) * k;
+      actCur.pulse += (lerp(A0.pulse, A1.pulse, gsw) - actCur.pulse) * k;
+      actCur.pf += (lerp(A0.pf, A1.pf, gsw) - actCur.pf) * k;
+      entity.rotation.y += dt * actCur.ry;
+      entity.rotation.x += dt * actCur.rx;
+      entity.rotation.z += dt * actCur.rz;
+      mat.uniforms.uWobble.value = actCur.wobble;
+      entity.scale.setScalar(cur.scale * (1 + Math.sin(t * actCur.pf) * actCur.pulse));
       mat.uniforms.uOpacity.value = cur.op;
       mat.uniforms.uTime.value = t;
       mat.uniforms.uVel.value = v * 0.12;

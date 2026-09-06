@@ -26,7 +26,9 @@ export const TOTAL = acc;
 export function sceneAt(p) {
   let idx = 0;
   for (let i = 0; i < SCENES.length; i++) {
-    if (p >= SCENES[i].start - 0.45) idx = i;
+    /* flip exactly at the chapter boundary — label / rail / wipe all
+       switch when the next chapter's content actually arrives */
+    if (p >= SCENES[i].start) idx = i;
   }
   return idx;
 }
