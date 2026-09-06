@@ -1,6 +1,7 @@
 import { contactConfig, siteMeta } from "../../config/siteConfig";
 
-/* SCENE 08 / CONTACT — giant close, the twin returns behind */
+/* SCENE 08 / CONTACT — giant close, the particle entity returns behind.
+   Full contact data + footer note + copyright. */
 
 const LINKS = [
   { label: "EMAIL", value: contactConfig.email, href: `mailto:${contactConfig.email}` },
@@ -9,45 +10,53 @@ const LINKS = [
   { label: "PHONE", value: contactConfig.phone, href: `tel:${contactConfig.phone}` },
 ];
 
-export default function ContactScene() {
+export default function ContactScene({ refCb }) {
   return (
-    <section className="scene scene-contact" data-scene="contact">
+    <section className="scene scene-contact" ref={refCb} data-scene="contact">
       <div className="scene-inner">
-        <div className="scene-kicker rv" style={{ "--d": "0.05s" }}>
+        <div className="scene-kicker rv" data-th="0.02">
           <i className="kicker-tick" />
           08 / CONTACT
         </div>
 
-        <h2 className="contact-mega">
-          <span className="rv" style={{ "--d": "0.14s" }}>
-            {"LET'S"}
+        <h2 className="ct-giant">
+          <span className="rv" data-th="0.06">
+            LET'S
           </span>
-          <br />
-          <span className="rv mega-outline" style={{ "--d": "0.3s" }}>
+          <span className="hero-outline rv" data-th="0.14">
             CONNECT.
           </span>
         </h2>
 
-        <ul className="contact-links">
+        <nav className="ct-links">
           {LINKS.map((l, i) => (
-            <li key={l.label} className="rv" style={{ "--d": `${0.45 + i * 0.08}s` }}>
-              <a href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" data-cursor="GO">
-                <span className="cl-label mono">{l.label}</span>
-                <span className="cl-value">{l.value}</span>
-                <span className="cl-arrow" aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </li>
+            <a
+              key={l.label}
+              className="ct-link rv"
+              data-th={0.26 + i * 0.1}
+              href={l.href}
+              target={l.href.startsWith("mailto") || l.href.startsWith("tel") ? undefined : "_blank"}
+              rel="noreferrer"
+            >
+              <span className="ctl-label mono">{l.label}</span>
+              <span className="ctl-value">{l.value}</span>
+              <span className="ctl-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
           ))}
-        </ul>
+        </nav>
 
-        <footer className="contact-foot rv" style={{ "--d": "0.85s" }}>
-          <span>
-            © {siteMeta.copyrightRange} {siteMeta.copyrightOwner}
+        <div className="ct-meta mono rv" data-th="0.66">
+          <span>{contactConfig.location}</span>
+          <span>{contactConfig.status}</span>
+        </div>
+
+        <footer className="ct-foot rv" data-th="0.8">
+          <span className="mono">
+            © {siteMeta.copyrightRange} {siteMeta.copyrightOwner} — FLOWFOLIO®
           </span>
-          <span>FLOWFOLIO®</span>
-          <span className="accent-text">{contactConfig.status}</span>
+          <span className="ct-note">{siteMeta.footerNote}</span>
         </footer>
       </div>
     </section>

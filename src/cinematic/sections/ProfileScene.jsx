@@ -1,55 +1,56 @@
-/* SCENE 01 / PROFILE — typography first, twin occupies the right void */
+import { digitalIdentity, topStats, contactConfig, siteMeta } from "../../config/siteConfig";
 
-export default function ProfileScene() {
+/* SCENE 01 / PROFILE — typography-first hero. All identity data kept,
+   presented as a typographic grid instead of cards. */
+
+export default function ProfileScene({ refCb }) {
+  const rows = [
+    ...topStats.map((s) => [s.label, s.value]),
+    ...digitalIdentity.fields
+      .filter((f) => f.label !== "邮箱" && f.label !== "博客")
+      .map((f) => [f.label, f.value]),
+    ["LOCATION", contactConfig.location],
+    ["邮箱", contactConfig.email],
+    ["博客", contactConfig.blog.replace("https://", "")],
+  ];
+
   return (
-    <section className="scene scene-profile" data-scene="profile">
-      <div className="scene-inner profile-layout">
-        <div className="profile-left">
-          <div className="scene-kicker rv" style={{ "--d": "0.05s" }}>
-            <i className="kicker-tick" />
-            01 / PROFILE
-          </div>
-          <h1 className="mega-title" aria-label="CsFan">
-            <span className="rv" style={{ "--d": "0.16s" }}>
-              CS
-            </span>
-            <span className="rv mega-outline" style={{ "--d": "0.3s" }}>
-              FAN
-            </span>
-          </h1>
-          <p className="profile-role rv" style={{ "--d": "0.46s" }}>
-            Agent Application Engineer
-          </p>
-          <ul className="profile-tags rv" style={{ "--d": "0.56s" }}>
-            <li>Multi-Agent Systems</li>
-            <li>Java Full Stack</li>
-            <li>Cloud Native</li>
-          </ul>
-          <dl className="type-grid rv" style={{ "--d": "0.7s" }}>
-            <div>
-              <dt>LOCATION</dt>
-              <dd>WUHAN · CN</dd>
-            </div>
-            <div>
-              <dt>UNIVERSITY</dt>
-              <dd>HUST</dd>
-            </div>
-            <div>
-              <dt>FOCUS</dt>
-              <dd>AGENT SYSTEM</dd>
-            </div>
-            <div>
-              <dt>STACK</dt>
-              <dd>JAVA / AI</dd>
-            </div>
-            <div>
-              <dt>STATUS</dt>
-              <dd className="accent-text">OPEN TO WORK</dd>
-            </div>
-          </dl>
+    <section className="scene scene-profile" ref={refCb} data-scene="profile">
+      <div className="scene-inner">
+        <div className="scene-kicker rv" data-th="0.02">
+          <i className="kicker-tick" />
+          01 / PROFILE
         </div>
-        {/* right side intentionally empty — the digital twin lives here */}
-        <div className="profile-void" aria-hidden="true" />
+
+        <h1 className="hero-title">
+          <span className="hero-line rv" data-th="0.06">
+            CS
+          </span>
+          <span className="hero-line hero-outline rv" data-th="0.14">
+            FAN
+          </span>
+        </h1>
+
+        <p className="hero-role rv" data-th="0.22">
+          {digitalIdentity.role}
+        </p>
+        <p className="hero-desc rv" data-th="0.3">
+          {siteMeta.description}
+        </p>
+
+        <dl className="type-grid rv" data-th="0.42">
+          {rows.map(([k, v]) => (
+            <div className="type-row" key={k + v}>
+              <dt className="mono">{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="hero-status rv" data-th="0.6">
+          <i className="status-dot" />
+          OPEN TO WORK — {contactConfig.status}
+        </div>
       </div>
     </section>
   );

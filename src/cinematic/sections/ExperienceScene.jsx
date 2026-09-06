@@ -1,7 +1,7 @@
 import { internshipExperience as job } from "../../config/siteConfig";
 
 /* SCENE 03 / EXPERIENCE — outline giant typography + big-number metrics,
-   the WebGL layer switches to the agent network behind it */
+   staged summary segments, full stack tags. All internship data kept. */
 
 const METRICS = [
   { k: "07 → 03", v: "DAYS", note: "话题上线时间 · AI 生图工作流 0→1" },
@@ -10,44 +10,60 @@ const METRICS = [
   { k: "ODPS · CH", v: "PIPELINE", note: "意图定向结案 · ClickHouse 加速" },
 ];
 
-export default function ExperienceScene() {
+export default function ExperienceScene({ refCb }) {
+  const segments = job.summary.split("；").filter(Boolean);
+
   return (
-    <section className="scene scene-experience" data-scene="experience">
+    <section className="scene scene-experience" ref={refCb} data-scene="experience">
       <div className="scene-inner">
-        <div className="scene-kicker rv" style={{ "--d": "0.05s" }}>
+        <div className="scene-kicker rv" data-th="0.02">
           <i className="kicker-tick" />
           03 / EXPERIENCE
         </div>
 
-        <div className="exp-head">
-          <div className="exp-company mega-outline rv" style={{ "--d": "0.14s" }}>
-            ALIBABA
+        <h2 className="xp-giant rv" data-th="0.06" aria-hidden="true">
+          ALIMAMA
+        </h2>
+
+        <div className="xp-head rv" data-th="0.12">
+          <div className="xp-org mono">{job.org}</div>
+          <div className="xp-role-row">
+            <h3 className="xp-role">{job.role}</h3>
+            <span className="xp-period mono">{job.company}</span>
+            <span className="xp-period mono">{job.period}</span>
           </div>
-          <div className="exp-org rv" style={{ "--d": "0.3s" }}>
-            {job.org}
-          </div>
-          <div className="exp-meta rv" style={{ "--d": "0.4s" }}>
-            <span className="accent-text">{job.role}</span>
-            <em> / {job.period}</em>
-          </div>
-          <p className="exp-intro rv" style={{ "--d": "0.5s" }}>
-            {job.intro}
-          </p>
+          <p className="xp-intro">{job.intro}</p>
         </div>
 
-        <div className="exp-metrics">
+        <div className="xp-metrics">
           {METRICS.map((m, i) => (
-            <div key={m.k} className="metric-cell rv" style={{ "--d": `${0.6 + i * 0.1}s` }}>
-              <div className="metric-k">{m.k}</div>
-              <div className="metric-v accent-text">{m.v}</div>
-              <div className="metric-note">{m.note}</div>
+            <div className="xp-metric rv" data-th={0.28 + i * 0.1} key={m.v}>
+              <div className="xm-k">
+                {m.k} <em>{m.v}</em>
+              </div>
+              <p className="xm-note">{m.note}</p>
             </div>
           ))}
         </div>
 
-        <p className="exp-stack rv" style={{ "--d": "1.05s" }}>
-          {job.stack.join("  ·  ")}
-        </p>
+        <div className="xp-summary">
+          <div className="xp-summary-label mono rv" data-th="0.45">
+            {job.summaryTitle} —
+          </div>
+          {segments.map((seg, i) => (
+            <p className="xp-seg rv" data-th={0.48 + i * 0.13} key={seg.slice(0, 12)}>
+              <span className="mono seg-idx">{String(i + 1).padStart(2, "0")}</span>
+              {seg}
+              {i < segments.length - 1 ? "；" : "。"}
+            </p>
+          ))}
+        </div>
+
+        <ul className="xp-stack rv" data-th="0.8">
+          {job.stack.map((s) => (
+            <li key={s}>{s}</li>
+          ))}
+        </ul>
       </div>
     </section>
   );

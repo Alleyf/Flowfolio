@@ -1,64 +1,49 @@
 import { educationList } from "../../config/siteConfig";
 
-/* SCENE 02 / EDUCATION — camera slides sideways, two data nodes on one line */
+/* SCENE 02 / EDUCATION — two timeline nodes on one rail, alternating sides.
+   Full data: period / title / tiers / body / chips / details. */
 
-const SHORT = {
-  华中科技大学: "HUST",
-  武汉理工大学: "WHUT",
-};
-
-export default function EducationScene() {
+export default function EducationScene({ refCb }) {
   return (
-    <section className="scene scene-education" data-scene="education">
+    <section className="scene scene-education" ref={refCb} data-scene="education">
       <div className="scene-inner">
-        <div className="scene-kicker rv" style={{ "--d": "0.05s" }}>
+        <div className="scene-kicker rv" data-th="0.02">
           <i className="kicker-tick" />
           02 / EDUCATION
         </div>
 
-        <div className="edu-line" aria-hidden="true">
-          <span className="edu-node" style={{ left: "22%" }} />
-          <span className="edu-node" style={{ left: "68%" }} />
-        </div>
+        <h2 className="scene-title rv" data-th="0.08">
+          教育背景<span className="scene-title-sub mono">EDUCATION</span>
+        </h2>
 
-        <div className="edu-track">
-          {educationList.map((edu, i) => {
-            const year = edu.period.slice(0, 4);
-            const right = i % 2 === 1;
-            return (
-              <article
-                key={edu.title}
-                className={`edu-entry ${right ? "edu-right" : "edu-left"}`}
-              >
-                <div className="edu-year rv" style={{ "--d": `${0.15 + i * 0.14}s` }}>
-                  {year}
-                </div>
-                <h3 className="edu-school rv" style={{ "--d": `${0.26 + i * 0.14}s` }}>
-                  {edu.school}
-                  <span className="edu-abbr">{SHORT[edu.school]}</span>
-                </h3>
-                <p className="edu-degree rv" style={{ "--d": `${0.36 + i * 0.14}s` }}>
-                  {edu.title.split("·")[1]} <em>/ {edu.period}</em>
-                </p>
-                <p className="edu-body rv" style={{ "--d": `${0.46 + i * 0.14}s` }}>
-                  {edu.body}
-                </p>
-                <ul className="edu-honors">
-                  {edu.chips.map((chip, j) => (
-                    <li
-                      key={chip}
-                      className="rv"
-                      style={{ "--d": `${0.56 + i * 0.14 + j * 0.07}s` }}
-                    >
-                      <span className="honor-idx">{String(j + 1).padStart(2, "0")}</span>
-                      {chip}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            );
-          })}
-        </div>
+        <div className="edu-rail" aria-hidden="true" />
+
+        {educationList.map((e, i) => (
+          <article
+            key={e.school}
+            className={`edu-node ${i % 2 === 1 ? "right" : "left"} rv`}
+            data-th={0.18 + i * 0.42}
+          >
+            <div className="edu-period mono">{e.period}</div>
+            <h3 className="edu-title">{e.title}</h3>
+            <div className="edu-tiers mono">
+              {e.tiers.map((t) => (
+                <span key={t}>{t}</span>
+              ))}
+            </div>
+            <p className="edu-body">{e.body}</p>
+            <ul className="edu-details">
+              {e.details.map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+            <ul className="edu-chips">
+              {e.chips.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
       </div>
     </section>
   );

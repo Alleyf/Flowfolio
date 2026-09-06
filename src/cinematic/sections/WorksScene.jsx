@@ -2,14 +2,12 @@ import { useEffect, useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { portfolioWorks } from "../../config/siteConfig";
 
-/* SCENE 06 / WORK MATRIX — asymmetric editorial grid, grayscale→color hover,
-   click opens a fullscreen viewer (ESC / ←→ supported) */
+/* SCENE 06 / WORK MATRIX — horizontal filmstrip of all 9 works, driven
+   continuously by local scroll progress. Click opens fullscreen viewer.
+   Full data: subtitle / kind / summary / highlights / stack / links. */
 
-/* column spans per item, cycles every 6 to stay asymmetric but balanced */
-const SPANS = [7, 5, 5, 7, 5, 5, 7, 5, 7];
-
-export default function WorksScene({ viewerOpenRef }) {
-  const [viewer, setViewer] = useState(null); // index | null
+export default function WorksScene({ refCb, stripRef, innerRef, viewerOpenRef }) {
+  const [viewer, setViewer] = useState(null);
 
   useEffect(() => {
     viewerOpenRef.current = viewer !== null;
@@ -31,31 +29,65 @@ export default function WorksScene({ viewerOpenRef }) {
   }, [viewer]);
 
   return (
-    <section className="scene scene-works" data-scene="works">
-      <div className="scene-inner works-inner">
-        <div className="scene-kicker rv" style={{ "--d": "0.05s" }}>
-          <i className="kicker-tick" />
-          06 / WORK MATRIX
-        </div>
+    <section className="scene scene-works" ref={refCb} data-scene="works">
+      <div className="scene-kicker rv works-kicker" data-th="0.02">
+        <i className="kicker-tick" />
+        06 / WORK MATRIX
+      </div>
 
-        <div className="works-grid scrollable" tabIndex={0}>
+      <div className="works-viewport" ref={innerRef}>
+        <div className="works-strip" ref={stripRef}>
           {portfolioWorks.map((w, i) => (
             <figure
               key={w.title}
-              className={`work-cell rv ${SPANS[i % SPANS.length] >= 7 ? "work-big" : "work-small"}`}
-              style={{ "--d": `${0.1 + i * 0.06}s`, gridColumn: `span ${SPANS[i % SPANS.length]}` }}
+              className="work-panel"
               onClick={() => setViewer(i)}
               data-cursor="VIEW"
             >
-              <img src={w.image} alt={w.title} loading="lazy" />
+              <div className="wp-media">
+                <img src={w.image} alt={w.title} loading="lazy" />
+              </div>
               <figcaption>
-                <span className="work-idx mono">{String(i + 1).padStart(2, "0")}</span>
-                <span className="work-name">{w.title}</span>
-                <span className="work-kind mono">{w.kind}</span>
+                <div className="wp-head">
+                  <span className="work-idx mono">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="wp-title">{w.title}</h3>
+                  <span className="work-kind mono">{w.kind}</span>
+                </div>
+                <p className="wp-sub mono">{w.subtitle}</p>
+                <p className="wp-summary">{w.summary}</p>
+                <ul className="wp-highlights">
+                  {w.highlights.map((h) => (
+                    <li key={h.slice(0, 14)}>{h}</li>
+                  ))}
+                </ul>
+                <div className="wp-foot">
+                  <p className="wp-stack mono">{w.stack.join(" · ")}</p>
+                  <div className="wp-links mono">
+                    {w.demo && (
+                      <a href={w.demo} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                        DEMO →
+                      </a>
+                    )}
+                    {w.downloadUrl && (
+                      <a href={w.downloadUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                        DOWNLOAD →
+                      </a>
+                    )}
+                    {w.repo && (
+                      <a href={w.repo} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                        REPO →
+                      </a>
+                    )}
+                  </div>
+                </div>
               </figcaption>
             </figure>
           ))}
         </div>
+      </div>
+
+      <div className="works-hint mono rv" data-th="0.1">
+        {String(portfolioWorks.length).padStart(2, "0")} WORKS — SCROLL TO DRAG THE STRIP →
       </div>
 
       {viewer !== null && (
