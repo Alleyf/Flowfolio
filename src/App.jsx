@@ -765,7 +765,8 @@ function SkillsRadar() {
   return <Box ref={ref} sx={{ width: "100%", height: 320 }} />;
 }
 
-function SectionShell({ id, eyebrow, title, icon, active, children }) {
+function SectionShell({ id, eyebrow, title, icon, active, align = "left", children }) {
+  const stageKey = active ? "on" : "off";
   return (
     <motion.section
       id={id}
@@ -774,14 +775,23 @@ function SectionShell({ id, eyebrow, title, icon, active, children }) {
       animate={{ opacity: active ? 1 : 0.52, y: active ? 0 : 18 }}
       transition={{ duration: 0.55, ease: "easeOut" }}
     >
-      <Stack spacing={1.1} sx={{ mb: 3 }}>
-        <Chip icon={icon} label={eyebrow} variant="outlined" className="section-chip" />
-        <Box className="section-title-row">
-          <Box className="section-title-tick" />
-          <Typography variant="h3" className="section-title-gradient">{title}</Typography>
+      <Box className={`sec-glass-panel${align === "right" ? " align-right" : ""}`}>
+        <Stack spacing={1.1} sx={{ mb: 3 }} key={`head-${stageKey}`}>
+          <Box className="stage-mask">
+            <Chip icon={icon} label={eyebrow} variant="outlined" className="section-chip" />
+          </Box>
+          <Box className={`section-title-row${align === "right" ? " sec-title-row-right" : ""}`}>
+            {align === "right" ? null : <Box className="section-title-tick" />}
+            <Box className="stage-mask">
+              <Typography variant="h3" className="section-title-gradient">{title}</Typography>
+            </Box>
+            {align === "right" ? <Box className="section-title-tick" /> : null}
+          </Box>
+        </Stack>
+        <Box className="stage-rise" key={`body-${stageKey}`} sx={{ height: "100%" }}>
+          {children}
         </Box>
-      </Stack>
-      {children}
+      </Box>
     </motion.section>
   );
 }
@@ -1171,6 +1181,20 @@ export default function App() {
     });
   }, [activeIndex, unlocked]);
 
+  // quancy-style console signature: greet the curious ones who open devtools
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const titleStyle = "color:#6ef2ff;text-shadow:0 0 18px rgba(110,242,255,.55);font-weight:bolder;font-size:44px";
+    const subStyle = "color:#ffb865;font-size:18px;font-weight:bolder";
+    const hintStyle = "color:#9dd6ec;font-size:13px";
+    const timer = window.setTimeout(() => {
+      console.info("%cFlowfolio", titleStyle);
+      console.info("%cFlow-driven portfolio · Agent 应用研发工程师", subStyle);
+      console.info("%c提示：试试 help / whoami / agent / matrix 命令，滚轮或方向键翻页。", hintStyle);
+    }, 2600);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     if (!unlocked || typeof window === "undefined") return undefined;
 
@@ -1340,11 +1364,35 @@ export default function App() {
   useEffect(() => {
     if (!unlocked) return undefined;
 
-    // quancy-style full-page hijack: wheel always flips pages, inner scroll disabled
+    // current page's inner scroller (only pages taller than viewport actually scroll)
+    const activeScroller = () => {
+      const shells = document.querySelectorAll(".slide-shell");
+      const shell = shells[activeIndex];
+      return shell ? shell.querySelector(".stage-rise") : null;
+    };
+
+    // true when the inner scroller can still move in the given direction
+    const innerCanScroll = (direction) => {
+      const scroller = activeScroller();
+      if (!scroller) return false;
+      const slack = scroller.scrollHeight - scroller.clientHeight;
+      if (slack <= 2) return false;
+      if (direction > 0) return scroller.scrollTop < slack - 1;
+      return scroller.scrollTop > 1;
+    };
+
+    // quancy-style full-page hijack: wheel flips pages; if a page is taller
+    // than the viewport, its inner content scrolls first, then flips
     const onWheel = (event) => {
       if (Math.abs(event.deltaY) < 24 || isTransitioning) return;
+      const direction = event.deltaY > 0 ? 1 : -1;
       event.preventDefault();
-      navigateTo(activeIndex + (event.deltaY > 0 ? 1 : -1));
+      if (innerCanScroll(direction)) {
+        const scroller = activeScroller();
+        scroller.scrollTop += event.deltaY;
+        return;
+      }
+      navigateTo(activeIndex + direction);
     };
 
     const onKeyDown = (event) => {
@@ -1374,9 +1422,19 @@ export default function App() {
         });
       } else if (["ArrowDown", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
+        if (innerCanScroll(1)) {
+          const scroller = activeScroller();
+          scroller.scrollTop += Math.min(320, scroller.clientHeight * 0.6);
+          return;
+        }
         navigateTo(activeIndex + 1);
       } else if (["ArrowUp", "PageUp"].includes(event.key)) {
         event.preventDefault();
+        if (innerCanScroll(-1)) {
+          const scroller = activeScroller();
+          scroller.scrollTop -= Math.min(320, scroller.clientHeight * 0.6);
+          return;
+        }
         navigateTo(activeIndex - 1);
       } else if (event.key === "Home") {
         event.preventDefault();
@@ -1800,8 +1858,8 @@ export default function App() {
       icon: <School size={18} />,
       render: () => (
         <Box className="education-timeline">
-          {educationList.map((item) => (
-            <Box key={item.title} className="education-node">
+          {educationList.map((item, index) => (
+            <Box key={item.title} className="education-node stagger-card" style={{ "--gi": index }}>
               <Box className="education-axis">
                 <Typography className="period-label education-period">{item.period}</Typography>
                 <Box className="education-dot" />
@@ -2385,7 +2443,7 @@ export default function App() {
                 <Box key={section.id} className="slide-shell">
                   <Container maxWidth="lg" className="slide-frame">
                     {loadedIndexes.has(index) ? (
-                      <SectionShell id={section.id} eyebrow={section.eyebrow} title={section.title} icon={section.icon} active={activeIndex === index}>
+                      <SectionShell id={section.id} eyebrow={section.eyebrow} title={section.title} icon={section.icon} active={activeIndex === index} align={index % 2 === 1 ? "right" : "left"}>
                         {section.render()}
                       </SectionShell>
                     ) : (

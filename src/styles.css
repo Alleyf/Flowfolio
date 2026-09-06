@@ -2322,3 +2322,176 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .warp-tunnel { display: none; }
 }
+
+/* ============================================================
+   quancy.cn "theatre" presentation layer
+   1. darker-bg glass stage panel per section
+   2. stagger rise-in for staged content
+   3. nav item mask hover
+   4. card grid stagger
+   ============================================================ */
+
+/* --- 1. darker-bg: the dimmed glass stage behind every page --- */
+.sec-glass-panel {
+  position: relative;
+  height: 100%;
+  padding: 26px 30px 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(165deg, rgba(8, 16, 27, 0.72), rgba(4, 9, 16, 0.58) 60%, rgba(8, 16, 27, 0.7));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(26px) saturate(120%);
+  overflow: hidden;
+}
+
+/* top hairline highlight = quancy's panel edge */
+.sec-glass-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(110, 242, 255, 0.45), transparent);
+}
+
+/* corner glow wash */
+.sec-glass-panel::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -12%;
+  width: 46%;
+  height: 90%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(110, 242, 255, 0.09), transparent 68%);
+}
+
+.sec-glass-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* alternating title alignment (quancy is-right / is-left) */
+.sec-title-row-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.sec-glass-panel.align-right::after {
+  right: auto;
+  left: -12%;
+}
+
+:root[data-theme="light"] .sec-glass-panel {
+  border-color: rgba(23, 92, 138, 0.14);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.78), rgba(240, 248, 252, 0.68) 60%, rgba(255, 255, 255, 0.76));
+  box-shadow: 0 24px 70px rgba(31, 71, 106, 0.14);
+}
+
+:root[data-theme="light"] .sec-glass-panel::after {
+  background: radial-gradient(circle at 50% 50%, rgba(31, 126, 168, 0.1), transparent 68%);
+}
+
+/* --- 2. staged rise-in: replays every time a page becomes active --- */
+.stage-rise {
+  animation: stage-rise-in 0.78s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: calc(var(--si, 0) * 90ms + 60ms);
+  /* pages taller than the viewport (e.g. project timeline) scroll inside the
+     panel; wheel still flips pages once the inner edge is reached */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 242, 255, 0.28) transparent;
+}
+
+.stage-rise::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stage-rise::-webkit-scrollbar-thumb {
+  background: rgba(110, 242, 255, 0.24);
+  border-radius: 999px;
+}
+
+.stage-rise::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 242, 255, 0.42);
+}
+
+@keyframes stage-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* masked line reveal for section titles (quancy split-line-mask-effect) */
+.stage-mask {
+  overflow: hidden;
+}
+
+.stage-mask > * {
+  animation: stage-mask-in 0.9s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+@keyframes stage-mask-in {
+  from { transform: translateY(105%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-rise,
+  .stage-mask > * {
+    animation: none;
+  }
+}
+
+/* --- 3. nav item mask hover (quancy header-menu-item-mask) --- */
+.nav-actions .MuiButton-root {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-actions .MuiButton-root::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--gold));
+  transform: translateX(-102%);
+  transition: transform 0.42s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.nav-actions .MuiButton-root:hover::after,
+.nav-actions .nav-button-active::after {
+  transform: translateX(0);
+}
+
+/* --- 4. card grid stagger --- */
+.stagger-card {
+  animation: stage-rise-in 0.7s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: calc(var(--gi, 0) * 70ms + 180ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stagger-card { animation: none; }
+}
+
+/* --- stage panel responsive padding --- */
+@media (max-width: 900px) {
+  .sec-glass-panel {
+    padding: 18px 16px 22px;
+    border-radius: 14px;
+  }
+}
