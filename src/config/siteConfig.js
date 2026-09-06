@@ -35,7 +35,7 @@ export const siteMeta = {
   brand: "FLOWFOLIO | Resume OS",
   brandAccent: "Resume OS",
   pageTitle: "CsFan | Flowfolio",
-  description: "CsFan的作品化简历网站，聚焦 Java 全栈、微服务、云原生与 AI 工程化。",
+  description: "CsFan的作品化简历网站，聚焦 Agent 应用研发、多智能体系统、云原生与全栈工程化。",
   overviewEyebrow: "Flowfolio / Resume OS",
   overviewTitle: "基础简介",
   copyrightRange: "2025-2026",
@@ -51,7 +51,7 @@ export const resumeDownloadPath = "./doc/resume.pdf";
 export const terminalConfig = {
   prompt: "visitor@recruiter:~$",
   title: "fan@flowfolio:~/resume",
-  placeholder: "系统自动进入简历首页",
+  placeholder: "输入命令，Tab 自动补全，Enter 执行",
   hint: "系统启动完成后将自动进入简历首页。",
   commands: [
     {
@@ -63,17 +63,44 @@ export const terminalConfig = {
     {
       name: "help",
       description: "查看可用命令",
-      output: ["start -> 进入简历", "help -> 查看命令", "whoami -> 查看候选人信息", "contact -> 输出联系方式", "clear -> 清屏"],
+      output: ["start -> 进入简历", "help -> 查看命令", "whoami -> 查看候选人信息", "agent -> Agent 技能栈", "intern -> 实习经历摘要", "matrix -> 打开作品矩阵", "contact -> 输出联系方式", "clear -> 清屏"],
     },
     {
       name: "whoami",
       description: "查看候选人信息",
-      output: ["CsFan / Java 全栈工程师 / 微服务与云原生实践者 / HUST 硕士在读"],
+      output: ["CsFan / Agent 应用研发工程师 / 多智能体系统与云原生实践者 / HUST 硕士在读"],
+    },
+    {
+      name: "agent",
+      description: "查看 Agent 技能栈",
+      output: [
+        "[基座] Harness 核心机制 / SDD 开发 / 方案设计与概念验证",
+        "[工具] Skill · MCP · Plugin / Codex / Claude Code / Qoder",
+        "[范式] ReAct - Plan - Execute - Replan - Reflection",
+        "[机制] 上下文治理 / 记忆管理 / Multi-Agent 协作 / Hook / Sandbox",
+      ],
+      action: "goto-skills",
+    },
+    {
+      name: "intern",
+      description: "查看实习经历摘要",
+      output: [
+        "淘天集团 · 阿里妈妈 · 广告技术部 / AI 应用研发工程师 / 2026.06-2026.09",
+        "广告配置中心智能运维 Agent · 生成式 UI Agent · 热点话题聚合治理（7天->3天）",
+        "AI 意图定向搜索广告结案（ODPS + ClickHouse + 因果归因）",
+      ],
+      action: "goto-internship",
+    },
+    {
+      name: "matrix",
+      description: "打开作品矩阵",
+      output: ["[执行] 正在打开作品矩阵..."],
+      action: "goto-portfolio",
     },
     {
       name: "contact",
       description: "输出联系方式",
-      output: ["mail: alleyf@qq.com", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
+      output: ["mail: alleyf@qq.com", "phone: 13669156253", "github: https://github.com/Alleyf", "blog: https://alleyf.github.io/"],
     },
     {
       name: "clear",
@@ -87,13 +114,14 @@ export const bootLines = [
   "[启动] 正在加载 Flowfolio 配置清单...",
   "[启动] 正在连接作品封面与数字身份资源...",
   "[启动] 正在启用分页交互与动态切换管线...",
-  "[启动] 正在载入候选人档案：CsFan / Java 全栈工程师",
+  "[启动] 正在载入候选人档案：CsFan / Agent 应用研发工程师",
   "[启动] 简历入口已就绪，即将自动进入首页...",
 ];
 
 export const sectionMenus = [
   { id: "overview", label: "主页" },
   { id: "education", label: "教育背景" },
+  { id: "internship", label: "实习经历" },
   { id: "skills", label: "个人技能" },
   { id: "projects", label: "项目经历" },
   { id: "portfolio", label: "作品矩阵" },
@@ -102,14 +130,14 @@ export const sectionMenus = [
 ];
 
 export const topStats = [
-  { label: "主栈", value: "Java / Spring" },
-  { label: "工程化", value: "DevOps / Kubernetes" },
-  { label: "方向", value: "AI Agent / AI Infra" },
+  { label: "方向", value: "Agent 应用研发" },
+  { label: "主栈", value: "Java / Spring / SpringAI" },
+  { label: "工程化", value: "云原生 / DevOps / K8s" },
 ];
 
 export const digitalIdentity = {
   name: "CsFan",
-  role: "Java 全栈工程师 / AI 应用开发工程师",
+  role: "Agent 应用研发工程师 / Java 全栈",
   avatar: "./doc/avatar.webp",
   avatarFallback: "F",
   fields: [
@@ -118,7 +146,7 @@ export const digitalIdentity = {
     { label: "专业", value: "信息与通信工程" },
     { label: "邮箱", value: "alleyf@qq.com" },
     { label: "博客", value: "alleyf.github.io" },
-    { label: "状态", value: "找实习ing" },
+    { label: "状态", value: "秋招进行中 · Agent 研发" },
   ],
 };
 
@@ -130,7 +158,7 @@ export const educationList = [
     schoolUrl: "https://www.hust.edu.cn/",
     logo: "./doc/hust_logo.svg",
     tiers: ["985", "211", "双一流"],
-    body: "推荐免试研究生，持续把通信工程背景和软件工程实践结合，重点关注工程系统设计、平台能力建设与 AI 工具落地。",
+    body: "推荐免试研究生，持续把通信工程背景和软件工程实践结合，重点关注 Agent 工程、系统设计与平台能力建设。",
     chips: ["中国研究生创“芯”大赛 · EDA 精英挑战赛全国三等奖", "研究生一等学业奖学金"],
     details: ["推荐免试录取，研究方向聚焦工程化能力与系统实现。", "在校期间持续参与竞赛与项目实践，保持技术研究与工程落地并进。"],
   },
@@ -142,51 +170,87 @@ export const educationList = [
     logo: "./doc/whut_logo.svg",
     tiers: ["211", "双一流"],
     body: "专业前 15%，获得保研资格。本科阶段在课程学习、竞赛获奖、项目实践和综合素质评定上持续保持稳定输出。",
-    chips: ["计算机设计大赛全国二等奖", "服务外包大赛全国三等奖", "华为社会奖学金", "三好学生标兵", "优秀毕业生"],
+    chips: ["计算机设计大赛全国二等奖", "服务外包大赛全国三等奖", "华为社会奖学金", "校一等奖学金", "三好学生标兵", "优秀毕业生", "CET-6"],
     details: ["获得科研、竞赛和奖学金等多项荣誉。", "兼顾专业课程、比赛和项目开发，形成了较强的自驱学习与工程实践能力。"],
   },
 ];
 
+export const internshipExperience = {
+  company: "浙江天猫技术有限公司",
+  org: "淘天集团 · 阿里妈妈 · 广告技术部",
+  role: "AI 应用研发工程师",
+  period: "2026.06 - 2026.09",
+  intro: "参与阿里妈妈无界效果 BP 广告平台搜索广告相关业务研发：运行域对客使用的广告投放平台业务研发，以及管理域对内使用的广告配置中心智能 Agent 建设。",
+  stack: ["Orchestrator-Worker", "Multi-Agent", "Workflow", "ReAct", "Skill", "云端沙箱", "Agent Harness", "上下文工程", "ODPS", "ClickHouse", "Vibe Coding"],
+  summaryTitle: "核心工作与产出",
+  summary: "主导建设广告配置中心智能运维 Agent：基于 Orchestrator-Worker 多智能体架构与云端沙箱，设计视觉验证、浏览器自动化等业务 Skill 并编排三阶段 Workflow 流水线，把配置变更后的人工验证升级为自动化闭环；再整合离线会话日志与 Human in the loop 审批设计自进化工作流，实现异常自主感知、工具自主治理、经验自主沉淀。基于 Agent Harness 基座搭建生成式 UI Agent，以软硬双门限上下文压缩与分层记忆管理控制长流程上下文成本，结合组件设计规范与存量模板 few-shot 编排两阶段生成 Workflow，生成结果经人工筛选后入库反哺，持续提升界面生成质量与一致性。业务侧统一站内热点、站外赛道、营销话题三条异构链路的话题聚合、生图、评测与汰换治理，0→1 搭建 AI 生图工作流与话题评测平台并接入钉钉监控告警，上线时间从 7 天缩短到 3 天；同时完成 AI 意图定向搜索广告结案，设计统一 ODPS 底表并同步至 ClickHouse 做数据加速，构建增量价值指标与因果归因案例对客披露，有效拉升产品渗透率。",
+  metrics: ["验证自动化闭环", "Workflow + ReAct 自进化", "上线 7 天 → 3 天", "增量价值披露"],
+};
+
 export const personalSkills = [
   {
-    title: "后端开发",
-    body: "围绕业务系统、平台能力和服务治理搭建稳健的 Java 后端基础。",
-    tags: ["Java", "Spring Boot", "Spring Cloud", "MyBatis", "Dubbo"],
+    title: "AI 工程应用",
+    body: "熟悉 Java Agent 研发基座的 Harness 核心机制，能把 Skill、架构范式与上下文工程真正落进工程实践。",
+    tags: ["Harness", "SDD", "Skill·MCP·Plugin", "ReAct·Plan·Reflection", "上下文治理", "记忆管理", "Multi-Agent", "Hook", "Sandbox", "Codex", "Claude Code", "Qoder"],
   },
   {
-    title: "数据与中间件",
-    body: "覆盖缓存、消息、搜索和事务协调，兼顾性能与可维护性。",
-    tags: ["MySQL", "Redis", "ElasticSearch", "MongoDB", "RocketMQ"],
+    title: "全栈开发设计",
+    body: "掌握 Spring Cloud Alibaba 微服务治理，熟悉 MySQL 调优、Redis 缓存穿透/雪崩治理与高并发场景处理，借助 AI Coding 完成全栈交付。",
+    tags: ["Spring Cloud Alibaba", "MySQL", "Redis", "ElasticSearch", "RocketMQ", "Vue", "Element Plus"],
   },
   {
-    title: "云原生与运维",
-    body: "从发布、容器平台到可观测性链路，都能完成工程级交付。",
-    tags: ["Docker", "Kubernetes", "GitLab CI/CD", "Arthas", "SkyWalking"],
+    title: "云原生运维",
+    body: "具备 CPU/GPU 物理服务器、虚拟机与 K8s 集群管理经验，熟悉 DevOps 链路与生产环境排障。",
+    tags: ["Linux", "Docker", "Kubernetes", "CI/CD", "Arthas", "SkyWalking", "阿里云 ACK"],
   },
   {
-    title: "AI 工程化",
-    body: "持续把 Codex、Cursor 等工具纳入真实研发流程，提高交付效率。",
-    tags: ["Codex", "Cursor", "OpenClaw", "Vibe Coding"],
+    title: "团队协作与沉淀",
+    body: "担任实验室主管，管理 10 人团队；坚持周月报与技术博客，持续沉淀工程经验与知识体系。",
+    tags: ["实验室主管", "10 人团队管理", "技术博客", "周月报机制", "Agent Engineering"],
   },
+];
+
+export const skillTicker = [
+  "SpringAI-Alibaba", "MCP", "RAG", "Multi-Agent", "ReAct", "Plan-Execute",
+  "Spring Cloud", "Redis", "RocketMQ", "Kubernetes", "Docker", "MySQL",
+  "ElasticSearch", "Claude Code", "Codex", "AI Coding", "Prompt Engineering", "Context Engineering",
 ];
 
 export const projectExperiences = [
   {
+    title: "LabOps 智能运维系统",
+    period: "2025.12 - 2026.05",
+    status: "Stable",
+    role: "项目负责人",
+    external: false,
+    description: "面向实验室内部运维的智能监控治理平台，集成设备状态监控、日志分析和故障治理等能力，有效提高故障响应效率。",
+    bullets: [
+      "多Agent架构设计：设计 Knowledge/Chat/Plan-Execute-Replan 三类 Agent 协同架构，通过图编排实现模块化工作流；引入 MCP 协议标准化集成告警查询、日志检索和联网查询等工具。",
+      "RAG检索精度优化：构建运维手册向量化知识库，通过多轮实验对比 Chunk Size + TopK 参数组合，将知识检索准确率提升至 82%+。",
+      "智能运维闭环落地：基于 Plan-Execute-Replan 模式构建“服务告警→知识库检索→诊断步骤规划→工具调用→结果分析”标准 SOP，实现异常自主感知预警与初步诊断解决。",
+    ],
+    stack: ["SpringAI-Alibaba", "Spring Boot", "MCP", "RAG", "ReAct", "Plan-Executor", "Multi-Agent"],
+    color: "violet",
+  },
+  {
     title: "北师大教育培训管理服务平台（ETMS）",
+    period: "2024.03 - 2026.05",
     status: "Live",
     role: "项目负责人 / 后端研发",
     url: "https://jp.liyunol.com",
-    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活1W+，并发5K+。",
+    description: "北师大教育培训ToB项目，提供在线学习、项目管理、学情分析等服务，日活 2W+，并发 500+。",
     bullets: [
-      "基于 Spring Cloud Alibaba 搭建微服务体系，覆盖学习、培训与管理流程。",
-      "围绕高并发场景设计缓存、异步解耦和服务治理能力。",
-      "推动容器化交付和线上稳定性优化，缩短发布与恢复路径。",
+      "基础架构设计：拆分解耦 10 大核心业务模块，搭建项目开发脚手架，设计异步任务监控框架、条件查询构建器框架、定制化统计分析框架，引入 DynamicTp 动态配置和监控线程池。",
+      "核心功能开发：对接保利威支持 1w+ 在线用户直播学习；对接阿里云 OSS 和 kkFileView 实现资源分片上传、断点续传、秒传和在线预览；对接第三方支付实现支付全流程。",
+      "性能诊断优化：基于 Redis+RocketMQ+线程池构建“网关限流+缓存预热+异步解耦+批量处理”的考试业务削峰方案，吞吐量提升 10 倍，支撑 500+ QPS 稳定运行，高峰期零故障。",
+      "容器化云部署：搭建 GitLab 流水线，管理阿里云 ACK 容器服务集群和相关中间件，设计 HPA 策略根据流量自动伸缩。",
     ],
-    stack: ["Spring Cloud Alibaba", "Dubbo", "Redis", "RocketMQ", "Seata", "K8s"],
+    stack: ["Spring Cloud Alibaba", "Dubbo", "MySQL", "Redis", "ElasticSearch", "RocketMQ", "Seata", "Kubernetes"],
     color: "cyan",
   },
   {
     title: "中国高校社会科学数据中心（CMIS）",
+    period: "2024.09 - 至今",
     status: "Stable",
     role: "项目主管 / 运维负责人",
     url: "https://cmis.csdcinfo.cn",
@@ -202,6 +266,7 @@ export const projectExperiences = [
   },
   {
     title: "湖北省社会科学项目与奖励申报评审系统（HSAS）",
+    period: "长期维护",
     status: "Maintain",
     role: "项目负责人 / 后端研发",
     url: "https://hsas.csdcinfo.cn",
@@ -233,9 +298,51 @@ export const portfolioWorks = [
     stack: ["React", "TypeScript", "Vite", "Remotion"],
   },
   {
+    title: "MindScape",
+    subtitle: "AI-Native 知识星图工作室",
+    kind: "Web App",
+    repo: "https://github.com/Alleyf/MindScape",
+    image: "./doc/MindScape.webp",
+    summary: "把 Markdown 笔记转化为可探索的思维星图：AI 隐喻、标签图谱、学习路线、参考文档预览——不是归档文章，而是在每次阅读时重新生成线索。",
+    highlights: [
+      "d3-force 标签图谱 + React Flow 流程图双引擎可视化。",
+      "AI 隐喻与学习路线生成，让笔记在阅读时重新生长。",
+      "资源库六大分类 + Favicon 集成 + 外部链接预览。",
+    ],
+    stack: ["React 19", "TypeScript", "Vite 8", "d3-force", "React Flow"],
+  },
+  {
+    title: "AgnesOnline",
+    subtitle: "Agnes AI 多模态在线演示平台",
+    kind: "Web App",
+    repo: "https://github.com/Alleyf/AgnesOnline",
+    image: "./doc/AgnesOnline.webp",
+    summary: "一站式体验 Agnes AI 的文本对话、图像生成与视频创作能力，支持多服务商一键切换。",
+    highlights: [
+      "流式对话、文生图、文生视频三大能力统一接入，OpenAI 兼容协议。",
+      "内置 Agnes AI / SenseNova 双服务商预设，能力按服务商动态适配。",
+      "资产集中管理 + 本地存储 + 跨标签页同步，Token 不落盘。",
+    ],
+    stack: ["React 19", "TypeScript", "Tailwind CSS 4", "shadcn/ui", "Vite 8"],
+  },
+  {
+    title: "pianke 片刻",
+    subtitle: "本地照片擂台式选片工具",
+    kind: "桌面应用",
+    repo: "https://github.com/Alleyf/pianke",
+    image: "./doc/pianke.webp",
+    summary: "为摄影师设计的本地选片工具：相似照片自动归入“同一个瞬间”，再用左右 A/B 擂台 PK 快速挑出最满意的一张。",
+    highlights: [
+      "相似照片智能分组 + A/B 擂台 PK 选片交互。",
+      "Flask + Web 前端，Tauri 2.x 正式桌面版双路径分发。",
+      "Python 后端经 PyInstaller 打成 sidecar 随桌面应用分发。",
+    ],
+    stack: ["Flask", "Tauri 2.x", "Rust", "PyInstaller"],
+  },
+  {
     title: "CommandHub",
     subtitle: "桌面后台命令管理器",
-    kind: "Desktop",
+    kind: "桌面应用",
     repo: "https://github.com/Alleyf/CommandHub",
     downloadUrl: "https://github.com/Alleyf/CommandHub/releases/tag/v0.5.0",
     image: "./doc/CommandHub.webp",
@@ -248,32 +355,61 @@ export const portfolioWorks = [
     stack: ["Electron", "React 19", "Vite 7", "Node.js"],
   },
   {
-    title: "PG Design",
-    subtitle: "摄影设计项目管理平台",
-    kind: "Vertical SaaS",
-    repo: "https://github.com/Alleyf/pg-design",
-    image: "./doc/PG Design.webp",
-    summary: "面向摄影师、设计师和创意团队的项目管理系统，强调垂直业务流程。",
+    title: "SwitchCookie",
+    subtitle: "浏览器账号切换器（每标签隔离版）",
+    kind: "浏览器扩展",
+    repo: "https://github.com/Alleyf/SwitchCookie",
+    image: "./doc/SwitchCookie.webp",
+    summary: "Chrome / Edge MV3 扩展：同一个域名可以在多个标签页里各自登录不同账号，Cookie 与 localStorage 均按标签隔离。",
     highlights: [
-      "覆盖项目状态、预算分类、客户管理、团队协作和任务推进。",
-      "提供灵感与拍摄规划模块，不是泛化 CRUD 页面拼接。",
-      "适合展示产品建模和场景化前端设计能力。",
+      "DNR session rules 按标签改写 Cookie 请求头，Set-Cookie 自动吸收进私有 jar。",
+      "完整快照：Cookie（含 HttpOnly）/ localStorage / sessionStorage 一次打包。",
+      "主密码保护：PBKDF2-SHA256(250000) 派生密钥 + AES-GCM-256 加密。",
     ],
-    stack: ["React", "TypeScript", "Vite", "Tailwind CSS"],
+    stack: ["Chrome MV3", "DNR", "Web Crypto", "Service Worker"],
   },
   {
-    title: "VProOnline",
-    subtitle: "在线视频上传、处理与分享平台",
-    kind: "Media Tool",
-    repo: "https://github.com/Alleyf/VProOnline",
-    image: "./doc/VProOnline.webp",
-    summary: "基于 Node.js 的视频处理平台，覆盖上传、压缩、转码、裁剪和下载。",
+    title: "MaterialBox",
+    subtitle: "本地优先的浏览器素材管理扩展",
+    kind: "浏览器扩展",
+    repo: "https://github.com/Alleyf/MaterialBox",
+    image: "./doc/MaterialBox.webp",
+    summary: "从网页中采集图片与视频保存在本地 IndexedDB，结合本地模型做基础智能分类，支持 Chrome 和 Firefox。",
     highlights: [
-      "支持多格式转换、尺寸调整、音频提取和处理结果下载。",
-      "后端以 Express + FFmpeg 为核心，体现多媒体处理工程能力。",
-      "响应式设计，适配各种设备、支持 Vercel 部署和完整操作流程。",
+      "右键保存 + 整页扫描批量收集，低质/广告资源自动过滤。",
+      "TensorFlow.js 本地模型智能分类，支持手动纠正持续优化。",
+      "图片/视频工作室：裁剪、格式转换、截取；S3 / WebDAV 云端双向同步。",
     ],
-    stack: ["Node.js", "Express", "FFmpeg", "HTML/CSS/JS"],
+    stack: ["Chrome / Firefox 扩展", "IndexedDB", "TensorFlow.js", "S3 / WebDAV"],
+  },
+  {
+    title: "TabMark",
+    subtitle: "把收藏夹变成新标签页",
+    kind: "浏览器扩展",
+    repo: "https://github.com/Alleyf/TabMark-Bookmark-New-Tab",
+    demo: "http://www.ainewtab.app",
+    image: "./doc/TabMark.webp",
+    summary: "让收藏的书签一目了然、整洁高效，快速直达你最需要的网站；搭配智能 AI 搜索，更快找到答案。",
+    highlights: [
+      "书签拖拽排序 + 树状文件夹视图 + 侧边栏 / 悬浮球快速访问。",
+      "AI 智能搜索聚合豆包、Kimi、秘塔等，支持对比搜索一键全开。",
+      "暗黑模式 + 壁纸随心换，支持 Chrome / Edge / Firefox。",
+    ],
+    stack: ["Chrome / Edge / Firefox 扩展", "侧边栏 API", "AI 搜索聚合"],
+  },
+  {
+    title: "Zotero Duplicate Cleaner",
+    subtitle: "Zotero 10 文献资源整理插件",
+    kind: "Zotero 插件",
+    repo: "https://github.com/Alleyf/zotero-duplicate-cleaner",
+    image: "./doc/zotero-duplicate-cleaner.webp",
+    summary: "帮助 Zotero 用户在确认后处理重复条目、重复 PDF、重复笔记、孤儿 PDF 和失效附件。",
+    highlights: [
+      "按条目类型、DOI 或完整标题发现候选，优先保留 PDF 可用且元信息完整的条目。",
+      "PDF 内容按 SHA-256 本地哈希去重，删除只进回收站可恢复。",
+      "资源流图展示来源、判定过程、保留结果和处理去向。",
+    ],
+    stack: ["Zotero Plugin", "SHA-256", "CrossRef", "GitHub Actions"],
   },
 ];
 
@@ -317,8 +453,8 @@ export const contactConfig = {
   inboxEmail: "alleyf@qq.com",
   github: "https://github.com/Alleyf",
   blog: "https://alleyf.github.io/",
-  phone: "19223276194",
+  phone: "13669156253",
   location: "中国 · 武汉",
-  status: "找实习ing",
+  status: "秋招进行中 · Agent 研发",
   defaultSubject: "纳入人才库，发送offer",
 };

@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AppBar, Avatar, Box, Button, Card, CardContent, Chip, Container, Divider, Grid, Stack, TextField, Typography } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { RadarChart } from "echarts/charts";
 import { LegendComponent, RadarComponent, TooltipComponent } from "echarts/components";
 import { init, use as useEcharts } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ArrowUpRight, BookOpenText, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, MonitorCog, MoonStar, Phone, Radar, School, Send, Share2, Sparkles, Sun, TerminalSquare, Wrench, X } from "lucide-react";
-import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, terminalConfig, topStats } from "./config/siteConfig";
+import { ArrowUpRight, BookOpenText, Bot, BriefcaseBusiness, Building2, Camera, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, ExternalLink, Github, Globe, GraduationCap, Heart, Mail, MapPinned, MonitorCog, MoonStar, Phone, Radar, School, Send, Share2, Sparkles, Sun, TerminalSquare, Wrench, X } from "lucide-react";
+import { blogPosts, bootLines, contactConfig, digitalIdentity, educationList, internshipExperience, personalSkills, portfolioWorks, projectExperiences, resumeDownloadPath, sectionMenus, siteMeta, skillTicker, terminalConfig } from "./config/siteConfig";
 
 useEcharts([RadarChart, RadarComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
@@ -155,6 +155,167 @@ function HeroScene() {
   return <Box ref={ref} className="hero-scene" />;
 }
 
+const DOT_GRID_SPACING = 34;
+const DOT_BASE_ALPHA = 0.16;
+const DOT_HOVER_RADIUS = 190;
+const DOT_RIPPLE_RADIUS = 260;
+
+function DotGrid() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    el.appendChild(canvas);
+
+    let dots = [];
+    let ripples = [];
+    let frame;
+    let running = true;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    const pointer = { x: -9999, y: -9999, active: false };
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const build = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = el.clientWidth;
+      height = el.clientHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dots = [];
+      const cols = Math.ceil(width / DOT_GRID_SPACING) + 1;
+      const rows = Math.ceil(height / DOT_GRID_SPACING) + 1;
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          dots.push({
+            x: col * DOT_GRID_SPACING,
+            y: row * DOT_GRID_SPACING,
+            energy: 0,
+            phase: Math.random() * Math.PI * 2,
+          });
+        }
+      }
+    };
+
+    const spawnRipple = (x, y) => ripples.push({ x, y, start: performance.now() });
+
+    const onMove = (event) => {
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.active = true;
+    };
+
+    const onLeave = () => {
+      pointer.active = false;
+      pointer.x = -9999;
+      pointer.y = -9999;
+    };
+
+    const onPointerDown = (event) => {
+      if (event.target.closest("input, textarea, button, a")) return;
+      spawnRipple(event.clientX, event.clientY);
+    };
+
+    const draw = (now) => {
+      if (!running) return;
+      frame = requestAnimationFrame(draw);
+      context.clearRect(0, 0, width, height);
+      ripples = ripples.filter((ripple) => now - ripple.start < 1500);
+
+      for (const dot of dots) {
+        let energy = 0;
+        if (pointer.active) {
+          const dx = dot.x - pointer.x;
+          const dy = dot.y - pointer.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance < DOT_HOVER_RADIUS) {
+            energy = Math.max(energy, 1 - distance / DOT_HOVER_RADIUS);
+          }
+        }
+        for (const ripple of ripples) {
+          const age = (now - ripple.start) / 1500;
+          const ringRadius = age * DOT_RIPPLE_RADIUS * 2.2;
+          const distance = Math.hypot(dot.x - ripple.x, dot.y - ripple.y);
+          const band = Math.max(0, 1 - Math.abs(distance - ringRadius) / 70);
+          energy = Math.max(energy, band * (1 - age));
+        }
+        if (!reducedMotion) {
+          dot.energy += (energy - dot.energy) * 0.14;
+        } else {
+          dot.energy = energy;
+        }
+        const breathe = reducedMotion ? 0 : Math.sin(now * 0.0011 + dot.phase) * 0.25 + 0.75;
+        const alpha = DOT_BASE_ALPHA * breathe + dot.energy * 0.8;
+        const radius = 1 + dot.energy * 1.9;
+        context.beginPath();
+        context.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+        context.fillStyle = dot.energy > 0.05
+          ? `rgba(110, 242, 255, ${Math.min(alpha, 0.95)})`
+          : `rgba(160, 190, 215, ${Math.min(alpha, 0.5)})`;
+        context.fill();
+      }
+    };
+
+    build();
+    if (!reducedMotion) {
+      const centerX = width / 2;
+      const centerY = height / 2;
+      [0, 160, 320].forEach((delay) => {
+        window.setTimeout(() => spawnRipple(centerX, centerY), delay);
+      });
+    }
+    frame = requestAnimationFrame(draw);
+
+    const onResize = () => build();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseleave", onLeave);
+    window.addEventListener("pointerdown", onPointerDown);
+
+    return () => {
+      running = false;
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("pointerdown", onPointerDown);
+      if (canvas.parentNode === el) el.removeChild(canvas);
+    };
+  }, []);
+
+  return <Box ref={ref} className="dot-grid" aria-hidden="true" />;
+}
+
+function SkillTicker() {
+  const items = useMemo(() => [...skillTicker, ...skillTicker], []);
+  const renderRow = (keyPrefix, reverse) => (
+    <Box className={reverse ? "ticker-row reverse" : "ticker-row"}>
+      <Box className="ticker-track">
+        {items.map((item, index) => (
+          <Box key={`${keyPrefix}-${item}-${index}`} className="ticker-item">
+            {item}
+            <Box component="span" className="ticker-dot" />
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+  return (
+    <Box className="skill-ticker" aria-hidden="true">
+      {renderRow("a", false)}
+      {renderRow("b", true)}
+    </Box>
+  );
+}
+
 function SkillsRadar() {
   const ref = useRef(null);
 
@@ -193,12 +354,12 @@ function SkillsRadar() {
       backgroundColor: "transparent",
       radar: {
         indicator: [
-          { name: "后端", max: 5 },
-          { name: "数据库", max: 5 },
-          { name: "中间件", max: 5 },
+          { name: "Agent工程", max: 5 },
+          { name: "LLM应用", max: 5 },
+          { name: "后端开发", max: 5 },
           { name: "云原生", max: 5 },
+          { name: "数据中间件", max: 5 },
           { name: "前端", max: 5 },
-          { name: "AI工程化", max: 5 },
         ],
         shape: "polygon",
         splitNumber: 5,
@@ -260,7 +421,7 @@ function SectionShell({ id, eyebrow, title, icon, active, children }) {
     >
       <Stack spacing={1.1} sx={{ mb: 3 }}>
         <Chip icon={icon} label={eyebrow} variant="outlined" className="section-chip" />
-        <Typography variant="h3">{title}</Typography>
+        <Typography variant="h3" className="section-title-gradient">{title}</Typography>
       </Stack>
       {children}
     </motion.section>
@@ -268,7 +429,7 @@ function SectionShell({ id, eyebrow, title, icon, active, children }) {
 }
 
 function ContactLine({ icon, label, value, href }) {
-  const highlighted = value === "找实习ing";
+  const highlighted = value === contactConfig.status;
   const node = (
     <Stack direction="row" spacing={1.5} alignItems="center">
       <Box className="icon-badge small">{icon}</Box>
@@ -292,6 +453,169 @@ function CommandHintList() {
   );
 }
 
+const agentLoopSteps = [
+  { key: "thought", label: "Thought", hint: "拆解目标与约束，规划下一步要做什么。" },
+  { key: "action", label: "Action", hint: "调度 Skill / MCP / Plugin，执行工具调用。" },
+  { key: "observation", label: "Observation", hint: "回收工具返回，校验结果是否可信。" },
+  { key: "reflection", label: "Reflection", hint: "复盘并修正计划，进入下一轮循环。" },
+];
+
+function AgentLoop() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setStep((current) => (current + 1) % agentLoopSteps.length);
+    }, 1900);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <Box className="react-loop">
+      <Stack direction="row" spacing={1.2} alignItems="center" className="react-loop-head">
+        <Box className="react-loop-pulse" />
+        <Typography variant="caption" className="react-loop-title">AGENT REACT LOOP · RUNNING</Typography>
+      </Stack>
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+        {agentLoopSteps.map((item, index) => (
+          <Fragment key={item.key}>
+            <Box className={index === step ? "react-loop-node active" : "react-loop-node"}>{item.label}</Box>
+            {index < agentLoopSteps.length - 1 ? <Box component="span" className="react-loop-arrow">→</Box> : null}
+          </Fragment>
+        ))}
+      </Stack>
+      <Typography variant="caption" sx={{ mt: 1.4, display: "block", color: "rgba(190, 220, 240, 0.72)" }}>
+        {agentLoopSteps[step].hint}
+      </Typography>
+    </Box>
+  );
+}
+
+const terminalActionSections = {
+  "goto-skills": "skills",
+  "goto-internship": "internship",
+  "goto-portfolio": "portfolio",
+};
+
+function TerminalPlayground({ onNavigate }) {
+  const [lines, setLines] = useState(() => [
+    "Flowfolio interactive shell v2.0",
+    "输入 help 查看命令，agent / intern / matrix 会直接跳转到对应分栏。",
+  ]);
+  const [value, setValue] = useState("");
+  const [pointer, setPointer] = useState({ prefix: "", matches: [], index: 0 });
+  const outputRef = useRef(null);
+
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [lines]);
+
+  const submit = () => {
+    const raw = value.trim();
+    if (!raw) return;
+
+    const name = raw.toLowerCase();
+    const echo = `${terminalConfig.prompt} ${raw}`;
+    const matched = terminalConfig.commands.find((item) => item.name === name);
+
+    if (!matched) {
+      setLines((prev) => [...prev, echo, `command not found: ${name}  (输入 help 查看可用命令)`]);
+      setValue("");
+      setPointer({ prefix: "", matches: [], index: 0 });
+      return;
+    }
+
+    if (matched.action === "clear") {
+      setLines([]);
+      setValue("");
+      setPointer({ prefix: "", matches: [], index: 0 });
+      return;
+    }
+
+    const output = [...(matched.output ?? [])];
+    const targetId = terminalActionSections[matched.action];
+
+    if (targetId) {
+      const target = sectionMenus.find((item) => item.id === targetId);
+      output.push(`[跳转] 正在前往「${target ? target.label : targetId}」分栏...`);
+      if (typeof onNavigate === "function") onNavigate(targetId);
+    }
+
+    if (matched.action === "unlock") {
+      output.push("[提示] 简历已解锁，你当前就在主页。");
+    }
+
+    setLines((prev) => [...prev, echo, ...output]);
+    setValue("");
+    setPointer({ prefix: "", matches: [], index: 0 });
+  };
+
+  const complete = () => {
+    const prefix = value.trim().toLowerCase();
+    const available = terminalConfig.commands.map((item) => item.name);
+    const matches = available.filter((item) => item.startsWith(prefix));
+    if (!matches.length) return;
+    const nextIndex = pointer.prefix === prefix && pointer.matches.length ? (pointer.index + 1) % matches.length : 0;
+    setPointer({ prefix, matches, index: nextIndex });
+    setValue(matches[nextIndex]);
+  };
+
+  return (
+    <Card className="glass-card playground-card">
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.6 }}>
+          <Box>
+            <Typography variant="overline">Interactive Shell</Typography>
+            <Typography variant="h5">命令行名片</Typography>
+          </Box>
+          <Chip icon={<TerminalSquare size={15} />} label="TRY IT" className="hero-chip" />
+        </Stack>
+        <Box className="playground-output" ref={outputRef}>
+          {lines.map((line, index) => (
+            <Box key={`${index}-${line}`} component="div" className="playground-line">{line}</Box>
+          ))}
+        </Box>
+        <Box className="playground-input-row">
+          <Typography className="terminal-prompt playground-prompt">{terminalConfig.prompt}</Typography>
+          <input
+            className="playground-input"
+            value={value}
+            placeholder={terminalConfig.placeholder}
+            aria-label="terminal playground input"
+            onChange={(event) => setValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                submit();
+                return;
+              }
+              if (event.key === "Tab") {
+                event.preventDefault();
+                complete();
+              }
+            }}
+          />
+          <Button size="small" variant="contained" onClick={submit}>执行</Button>
+        </Box>
+        <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 1.6 }}>
+          {terminalConfig.commands.map((item) => (
+            <Chip
+              key={item.name}
+              label={item.name}
+              size="small"
+              variant="outlined"
+              className="command-chip"
+              onClick={() => setValue(item.name)}
+            />
+          ))}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
 function CarouselNav({ onPrev, onNext }) {
   return (
     <Stack direction="row" spacing={1}>
@@ -302,20 +626,25 @@ function CarouselNav({ onPrev, onNext }) {
 }
 
 const highlightTerms = [
-  "Spring Cloud Alibaba",
-  "微服务体系",
-  "高并发",
-  "缓存",
+  "Orchestrator-Worker",
+  "多智能体",
+  "Multi-Agent",
+  "Workflow",
+  "ReAct",
+  "MCP",
+  "RAG",
+  "82%+",
+  "500+ QPS",
+  "10 倍",
+  "Plan-Execute-Replan",
+  "SpringAI-Alibaba",
+  "日活 2W+",
+  "Human in the loop",
+  "缓存预热",
   "异步解耦",
-  "服务治理",
-  "容器化交付",
-  "40 节点私有云",
+  "削峰",
+  "40 个节点",
   "Kubernetes",
-  "Rancher",
-  "Harbor",
-  "性能优化",
-  "安全加固",
-  "Struts + Hibernate",
   "渐进式重构",
 ];
 
@@ -389,14 +718,12 @@ export default function App() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [loadedIndexes, setLoadedIndexes] = useState(() => new Set([0]));
-  const [flippedProjects, setFlippedProjects] = useState({});
   const [portfolioIndex, setPortfolioIndex] = useState(0);
   const [portfolioMode, setPortfolioMode] = useState("works");
   const [artCategoryIndex, setArtCategoryIndex] = useState(0);
   const [artPhotoIndex, setArtPhotoIndex] = useState(0);
   const [artVisibleCount, setArtVisibleCount] = useState(ART_INITIAL_VISIBLE_COUNT);
   const [artCopy, setArtCopy] = useState(artCopyPool[0]);
-  const [showPortfolioPoster, setShowPortfolioPoster] = useState(false);
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [liked, setLiked] = useState(() => (typeof window !== "undefined" ? window.localStorage.getItem("flowfolio-liked") === "true" : false));
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
@@ -415,6 +742,7 @@ export default function App() {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
   const [completionState, setCompletionState] = useState({ prefix: "", matches: [], pointer: 0 });
+  const [pendingSectionId, setPendingSectionId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", subject: contactConfig.defaultSubject, message: "" });
   const touchStartY = useRef(null);
   const touchStartSection = useRef(null);
@@ -423,6 +751,7 @@ export default function App() {
   const unlockTimerRef = useRef(null);
   const transitionTimerRef = useRef(null);
   const portfolioSectionIndex = sectionMenus.findIndex((item) => item.id === "portfolio");
+  const internshipSectionIndex = sectionMenus.findIndex((item) => item.id === "internship");
   const skillsSectionIndex = sectionMenus.findIndex((item) => item.id === "skills");
   const projectsSectionIndex = sectionMenus.findIndex((item) => item.id === "projects");
   const blogSectionIndex = sectionMenus.findIndex((item) => item.id === "blog");
@@ -462,8 +791,10 @@ export default function App() {
 
   useEffect(() => {
     if (!unlocked || activeIndex < Math.max(1, portfolioSectionIndex - 1)) return;
-    const image = new Image();
-    image.src = siteMeta.portfolioPoster;
+    portfolioWorks.slice(0, 4).forEach((item) => {
+      const image = new Image();
+      image.src = item.image;
+    });
   }, [activeIndex, portfolioSectionIndex, unlocked]);
 
   useEffect(() => {
@@ -495,14 +826,11 @@ export default function App() {
       if (sharePosterPreview) {
         closeSharePosterPreview();
       }
-      if (showPortfolioPoster) {
-        setShowPortfolioPoster(false);
-      }
     };
 
     window.addEventListener("keydown", onEscapeCloseModal);
     return () => window.removeEventListener("keydown", onEscapeCloseModal);
-  }, [sharePosterPreview, showPortfolioPoster, showPosterGeneratingModal, unlocked]);
+  }, [sharePosterPreview, showPosterGeneratingModal, unlocked]);
 
   useEffect(() => {
     if (!unlocked || typeof window === "undefined") return undefined;
@@ -577,10 +905,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setShowPortfolioPoster(activeIndex === portfolioSectionIndex);
-  }, [activeIndex, portfolioSectionIndex]);
-
-  useEffect(() => {
     setArtPhotoIndex(0);
     setArtVisibleCount(ART_INITIAL_VISIBLE_COUNT);
   }, [artCategoryIndex, portfolioMode]);
@@ -637,6 +961,26 @@ export default function App() {
     transitionTimerRef.current = window.setTimeout(() => setIsTransitioning(false), SLIDE_TRANSITION_MS);
   };
 
+  const navigateToSectionId = (sectionId) => {
+    const nextIndex = sectionMenus.findIndex((item) => item.id === sectionId);
+    if (nextIndex < 0) return;
+    if (unlocked) {
+      navigateTo(nextIndex);
+      return;
+    }
+    setPendingSectionId(sectionId);
+  };
+
+  useEffect(() => {
+    if (!unlocked || !pendingSectionId) return undefined;
+    const nextIndex = sectionMenus.findIndex((item) => item.id === pendingSectionId);
+    const timer = window.setTimeout(() => {
+      setPendingSectionId(null);
+      if (nextIndex >= 0) navigateTo(nextIndex);
+    }, 420);
+    return () => window.clearTimeout(timer);
+  }, [pendingSectionId, unlocked]);
+
   const canSectionScroll = (section, direction) => {
     if (!section) return false;
     if (direction > 0) return section.scrollTop + section.clientHeight < section.scrollHeight - 2;
@@ -656,9 +1000,13 @@ export default function App() {
     };
 
     const onKeyDown = (event) => {
+      const keyTarget = event.target instanceof Element ? event.target : null;
+      if (keyTarget && (keyTarget.matches("input, textarea, select") || keyTarget.isContentEditable)) return;
+
       if (activeIndex === portfolioSectionIndex && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
         event.preventDefault();
-        if (portfolioMode === "works") {
+
+        if (portfolioMode !== "art") {
           setPortfolioIndex((current) => {
             if (event.key === "ArrowLeft") return (current - 1 + portfolioWorks.length) % portfolioWorks.length;
             return (current + 1) % portfolioWorks.length;
@@ -763,6 +1111,15 @@ export default function App() {
             setUnlocked(true);
           }, 500);
         }
+        if (terminalActionSections[matched.action]) {
+          const targetId = terminalActionSections[matched.action];
+          const target = sectionMenus.find((item) => item.id === targetId);
+          setTerminalHint(`正在前往「${target ? target.label : targetId}」分栏。`);
+          if (!unlocked) {
+            unlockTimerRef.current = window.setTimeout(() => setUnlocked(true), 500);
+          }
+          navigateToSectionId(targetId);
+        }
     }
 
     setCommand("");
@@ -864,7 +1221,7 @@ export default function App() {
 
       context.fillStyle = "#d9eefc";
       context.font = "600 36px 'Noto Sans SC', sans-serif";
-      context.fillText("Java 全栈工程师 · 微服务 · 云原生 · AI 工程化", 84, 296);
+      context.fillText("Agent 应用研发 · 多智能体 · 云原生 · 全栈工程化", 84, 296);
 
       context.fillStyle = "rgba(7, 20, 32, 0.86)";
       context.strokeStyle = "rgba(110, 242, 255, 0.32)";
@@ -874,8 +1231,39 @@ export default function App() {
       context.fill();
       context.stroke();
 
-      const posterImage = await loadImage(siteMeta.portfolioPoster);
-      context.drawImage(posterImage, 114, 382, 852, 620);
+      const gridWorks = portfolioWorks.slice(0, 4);
+      const gridTileWidth = 408;
+      const gridTileHeight = 296;
+      const gridXStart = 114;
+      const gridYStart = 396;
+      for (let i = 0; i < gridWorks.length; i += 1) {
+        const item = gridWorks[i];
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const tileX = gridXStart + col * (gridTileWidth + 24);
+        const tileY = gridYStart + row * (gridTileHeight + 24);
+        try {
+          const workImage = await loadImage(item.image);
+          context.save();
+          context.beginPath();
+          context.roundRect(tileX, tileY, gridTileWidth, gridTileHeight, 20);
+          context.clip();
+          context.drawImage(workImage, tileX, tileY, gridTileWidth, gridTileHeight);
+          context.restore();
+        } catch (error) {
+          context.fillStyle = "rgba(110, 242, 255, 0.08)";
+          context.beginPath();
+          context.roundRect(tileX, tileY, gridTileWidth, gridTileHeight, 20);
+          context.fill();
+        }
+        context.fillStyle = "rgba(5, 16, 26, 0.78)";
+        context.beginPath();
+        context.roundRect(tileX, tileY + gridTileHeight - 58, gridTileWidth, 58, 0);
+        context.fill();
+        context.fillStyle = "#ebf8ff";
+        context.font = "600 26px 'Noto Sans SC', sans-serif";
+        context.fillText(item.title, tileX + 20, tileY + gridTileHeight - 22);
+      }
 
       context.fillStyle = "rgba(7, 20, 32, 0.9)";
       context.strokeStyle = "rgba(255, 255, 255, 0.08)";
@@ -1025,27 +1413,17 @@ export default function App() {
           <Grid size={{ xs: 12, md: 7 }}>
             <Chip icon={<TerminalSquare size={16} />} label="SYSTEM ONLINE / DIGITAL IDENTITY" className="hero-chip" />
             <Typography variant="h1" sx={{ mt: 2, mb: 2, fontSize: { xs: 42, md: 84 } }}>CsFan</Typography>
-            <Typography className="hero-subtitle">Java 全栈工程师 / 微服务架构实践者 / 云原生与 AI 工程化探索者</Typography>
+            <Typography className="hero-subtitle">Agent 应用研发工程师 / 多智能体系统实践者 / Java 全栈与云原生</Typography>
             <Typography className="hero-copy" sx={{ mt: 3 }}>
-              聚焦高并发后端、微服务架构、云原生交付和工程效率提升，持续把平台能力建设与真实业务场景结合，输出可长期复用的系统能力。
+              围绕 ReAct - Plan - Execute - Replan - Reflection 架构范式构建可落地的 Agent 系统，同时在 Java 微服务、云原生交付与工程效率上保持全栈动手能力，把模型能力真正接进业务闭环。
             </Typography>
+            <AgentLoop />
             <CommandHintList />
+            <SkillTicker />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 4 }}>
-              <Button variant="contained" size="large" onClick={() => navigateTo(3)} startIcon={<BriefcaseBusiness size={18} />}>查看项目经历</Button>
-              <Button variant="outlined" size="large" onClick={() => navigateTo(4)} startIcon={<Sparkles size={18} />}>浏览作品矩阵</Button>
+              <Button variant="contained" size="large" onClick={() => navigateTo(projectsSectionIndex)} startIcon={<BriefcaseBusiness size={18} />}>查看项目经历</Button>
+              <Button variant="outlined" size="large" onClick={() => navigateTo(portfolioSectionIndex)} startIcon={<Sparkles size={18} />}>浏览作品矩阵</Button>
             </Stack>
-            <Grid container spacing={2} sx={{ mt: 2 }}>
-              {topStats.map((item) => (
-                <Grid key={item.label} size={{ xs: 12, sm: 4 }}>
-                  <Card className="glass-card info-card">
-                    <CardContent>
-                      <Typography variant="overline">{item.label}</Typography>
-                      <Typography variant="body1" className="strong-text" sx={{ mt: 0.5 }}>{item.value}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
             <Card className="glass-card identity-panel">
@@ -1069,7 +1447,7 @@ export default function App() {
                   {digitalIdentity.fields.map((field) => (
                     <Box key={field.label} className="metric-row">
                       <Typography color="text.secondary">{field.label}</Typography>
-                      {field.value === "找实习ing" ? <Box component="span" className="status-highlight">{field.value}</Box> : <Typography>{field.value}</Typography>}
+                      {field.value === contactConfig.status ? <Box component="span" className="status-highlight">{field.value}</Box> : <Typography>{field.value}</Typography>}
                     </Box>
                   ))}
                 </Stack>
@@ -1077,40 +1455,7 @@ export default function App() {
             </Card>
           </Grid>
           <Grid size={{ xs: 12 }}>
-            <Card className="glass-card contribution-panel">
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                  <Box>
-                    <Typography variant="overline">Activity</Typography>
-                    <Typography variant="h5">贡献热力图</Typography>
-                  </Box>
-                  <Github size={20} color="rgba(255,255,255,0.6)" />
-                </Stack>
-                <Box sx={{ 
-                  width: "100%", 
-                  overflowX: "auto", 
-                  borderRadius: 1.5, 
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(0,0,0,0.2)",
-                  p: 2,
-                  "&::-webkit-scrollbar": { height: 6 },
-                  "&::-webkit-scrollbar-thumb": { background: "rgba(255,255,255,0.1)", borderRadius: 3 }
-                }}>
-                  <img 
-                    src={siteMeta.contribution} 
-                    alt="Github Contributions" 
-                    style={{ 
-                      minWidth: "800px",
-                      width: "100%",
-                      height: "auto",
-                      display: "block",
-                      filter: "brightness(0.9) contrast(1.1)",
-                      objectFit: "contain"
-                    }} 
-                  />
-                </Box>
-              </CardContent>
-            </Card>
+            <TerminalPlayground onNavigate={navigateToSectionId} />
           </Grid>
         </Grid>
       ),
@@ -1163,6 +1508,61 @@ export default function App() {
       ),
     },
     {
+      id: "internship",
+      eyebrow: "Internship",
+      title: "实习经历",
+      icon: <Bot size={18} />,
+      render: () => (
+        <Grid container spacing={3} alignItems="stretch">
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card className="glass-card internship-company-card">
+              <CardContent>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box className="icon-badge"><Building2 size={20} /></Box>
+                  <Typography variant="overline">Taotian Group · Alimama</Typography>
+                </Stack>
+                <Typography variant="h4" sx={{ mt: 2 }}>{internshipExperience.org}</Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.6 }}>{internshipExperience.company}</Typography>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }}>
+                  <Chip label={internshipExperience.role} color="primary" />
+                  <Chip label={internshipExperience.period} variant="outlined" className="internship-period-chip" />
+                </Stack>
+                <Typography color="text.secondary" sx={{ mt: 2.2, lineHeight: 1.95 }}>{internshipExperience.intro}</Typography>
+                <Divider sx={{ my: 2.2, borderColor: "rgba(255,255,255,0.08)" }} />
+                <Typography variant="overline">Tech Keywords</Typography>
+                <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 1.2 }}>
+                  {internshipExperience.stack.map((item) => <Chip key={item} label={item} size="small" variant="outlined" />)}
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <motion.div
+              initial={false}
+              animate={activeIndex === internshipSectionIndex ? { opacity: 1, y: 0 } : { opacity: 0.72, y: 22 }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+              style={{ height: "100%" }}
+            >
+              <Card className="glass-card mission-card expanded" sx={{ height: "100%" }}>
+                <CardContent>
+                  <Stack direction="row" spacing={1.6} alignItems="flex-start" sx={{ minWidth: 0 }}>
+                    <Box component="span" className="mission-code">WORK</Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="h6">{internshipExperience.summaryTitle}</Typography>
+                      <Typography color="text.secondary" className="mission-summary" sx={{ mt: 1, lineHeight: 2 }}>{internshipExperience.summary}</Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
+                    {internshipExperience.metrics.map((metric) => <Box key={metric} component="span" className="mission-metric">{metric}</Box>)}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Grid>
+        </Grid>
+      ),
+    },
+    {
       id: "skills",
       eyebrow: "Skills",
       title: "个人技能",
@@ -1208,63 +1608,51 @@ export default function App() {
       title: "项目经历",
       icon: <BriefcaseBusiness size={18} />,
       render: () => (
-        <Grid container spacing={2.5}>
-          {projectExperiences.map((project, index) => {
-            const flipped = !!flippedProjects[project.title];
-            return (
-              <Grid key={project.title} size={{ xs: 12, md: 4 }}>
-                <motion.div
-                  className="project-card-wrap"
-                  initial={false}
-                  animate={activeIndex === projectsSectionIndex ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0.76, y: 28, scale: 0.97 }}
-                  transition={{ duration: 0.52, delay: index * 0.08, ease: "easeOut" }}
-                  whileHover={{ y: -10 }}
-                >
-                <Box className="flip-card" onClick={() => setFlippedProjects((current) => ({ ...current, [project.title]: !current[project.title] }))}>
-                  <Box className={flipped ? "flip-card-inner is-flipped" : "flip-card-inner"}>
-                    <Card className={`glass-card project-face project-front ${project.color}`}>
-                      <CardContent>
-                        <Typography variant="overline">项目介绍 / 我的角色</Typography>
-                        <Typography variant="h5" sx={{ mt: 1.5 }}>{project.title}</Typography>
-                        <Box className="flip-tip-badge">点击卡片翻转查看职责亮点</Box>
-                        <Typography color="text.secondary" sx={{ mt: 1.5 }}>
-                          <HighlightText text={project.description} />
+        <Box className="education-timeline">
+          {projectExperiences.map((project, index) => (
+            <Box key={project.title} className="education-node">
+              <Box className="education-axis">
+                <Typography className="period-label education-period">{project.period}</Typography>
+                <Box className="education-dot" />
+                <Box className="education-line" />
+              </Box>
+              <motion.div
+                className="project-timeline-wrap"
+                initial={false}
+                animate={activeIndex === projectsSectionIndex ? { opacity: 1, y: 0 } : { opacity: 0.74, y: 24 }}
+                transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
+              >
+                <Card className={`glass-card timeline-card project-timeline-card ${project.color}`}>
+                  <CardContent>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
+                      <Typography variant="h5" sx={{ pr: 1 }}>{project.title}</Typography>
+                      <Chip label={project.status} size="small" className={getProjectStatusClass(project.status)} />
+                    </Stack>
+                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.2 }}>
+                      <Chip label={project.role} size="small" variant="outlined" />
+                    </Stack>
+                    <Typography color="text.secondary" sx={{ mt: 1.6 }}>
+                      <HighlightText text={project.description} />
+                    </Typography>
+                    <Stack component="ul" spacing={1.2} className="bullet-list compact">
+                      {project.bullets.map((bullet) => (
+                        <Typography component="li" key={bullet} color="text.secondary">
+                          <HighlightText text={bullet} />
                         </Typography>
-                        <Box className="project-role-panel">
-                          <Typography className="project-detail-title">我的角色</Typography>
-                          <Typography color="text.secondary" className="project-detail-copy">{project.role}</Typography>
-                        </Box>
-                        <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
-                          <Chip label={project.status} size="small" className={getProjectStatusClass(project.status)} />
-                          <Chip label={project.role} size="small" variant="outlined" />
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                    <Card className={`glass-card project-face project-back ${project.color}`}>
-                      <CardContent>
-                        <Typography variant="overline">职责亮点 / Tech Stack</Typography>
-                        <Stack component="ul" spacing={1.2} className="bullet-list compact">
-                          {project.bullets.map((bullet) => (
-                            <Typography component="li" key={bullet} color="text.secondary">
-                              <HighlightText text={bullet} />
-                            </Typography>
-                          ))}
-                        </Stack>
-                        <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
-                          {project.stack.map((item) => <Chip key={item} label={item} size="small" variant="outlined" />)}
-                        </Stack>
-                        {project.external !== false && project.url ? (
-                          <Button href={project.url} target="_blank" rel="noreferrer" endIcon={<ArrowUpRight size={16} />} sx={{ mt: 2.5 }} onClick={(event) => event.stopPropagation()}>访问项目</Button>
-                        ) : null}
-                      </CardContent>
-                    </Card>
-                  </Box>
-                </Box>
-                </motion.div>
-              </Grid>
-            );
-          })}
-        </Grid>
+                      ))}
+                    </Stack>
+                    <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 2 }}>
+                      {project.stack.map((item) => <Chip key={item} label={item} size="small" variant="outlined" />)}
+                    </Stack>
+                    {project.external !== false && project.url ? (
+                      <Button href={project.url} target="_blank" rel="noreferrer" endIcon={<ArrowUpRight size={16} />} sx={{ mt: 2.2 }}>访问项目</Button>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Box>
+          ))}
+        </Box>
       ),
     },
     {
@@ -1273,6 +1661,8 @@ export default function App() {
       title: "作品矩阵",
       icon: <Sparkles size={18} />,
       render: () => {
+        const safePortfolioIndex = ((portfolioIndex % portfolioWorks.length) + portfolioWorks.length) % portfolioWorks.length;
+        const work = portfolioWorks[safePortfolioIndex];
         const hasArtPhotos = artPhotoCategories.length > 0;
         const safeArtCategoryIndex = hasArtPhotos ? ((artCategoryIndex % artPhotoCategories.length) + artPhotoCategories.length) % artPhotoCategories.length : 0;
         const activeArtCategory = hasArtPhotos ? artPhotoCategories[safeArtCategoryIndex] : null;
@@ -1283,7 +1673,6 @@ export default function App() {
         const artLeadPhoto = activeArtPhotos[safeArtPhotoIndex] ?? null;
         const curatorMeta = artCuratorMetaPool[(safeArtCategoryIndex + safeArtPhotoIndex) % artCuratorMetaPool.length];
         const frameCode = `ART-${String(safeArtCategoryIndex + 1).padStart(2, "0")}-${String(safeArtPhotoIndex + 1).padStart(2, "0")}`;
-        const work = portfolioWorks[portfolioIndex];
         return (
           <Stack spacing={2.5}>
             <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={2}>
@@ -1302,10 +1691,13 @@ export default function App() {
                 />
               </Stack>
               {portfolioMode === "works" ? (
-                <CarouselNav
-                  onPrev={() => setPortfolioIndex((current) => (current - 1 + portfolioWorks.length) % portfolioWorks.length)}
-                  onNext={() => setPortfolioIndex((current) => (current + 1) % portfolioWorks.length)}
-                />
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Typography color="text.secondary">共 {portfolioWorks.length} 个开源作品</Typography>
+                  <CarouselNav
+                    onPrev={() => setPortfolioIndex((current) => (current - 1 + portfolioWorks.length) % portfolioWorks.length)}
+                    onNext={() => setPortfolioIndex((current) => (current + 1) % portfolioWorks.length)}
+                  />
+                </Stack>
               ) : (
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Typography color="text.secondary">艺术源于生活而高于生活</Typography>
@@ -1324,7 +1716,14 @@ export default function App() {
                   <Card className="glass-card portfolio-card">
                     <Grid container>
                       <Grid size={{ xs: 12, md: 7 }}>
-                        <img src={work.image} alt={work.title} loading="lazy" decoding="async" className="portfolio-image portfolio-image-large" />
+                        <motion.div
+                          className="portfolio-cover-wrap"
+                          whileHover={{ scale: 1.018 }}
+                          transition={{ type: "spring", stiffness: 160, damping: 14, mass: 0.9 }}
+                        >
+                          <img src={work.image} alt={work.title} loading="lazy" decoding="async" className="portfolio-image portfolio-image-large" />
+                          <Box className="portfolio-cover-shine" />
+                        </motion.div>
                       </Grid>
                       <Grid size={{ xs: 12, md: 5 }}>
                         <CardContent className="portfolio-content">
@@ -1344,8 +1743,8 @@ export default function App() {
                           </Stack>
                           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 2.5 }}>
                             <Button component="a" href={work.repo} target="_blank" rel="noreferrer" variant="outlined" size="small" startIcon={<Github size={16} />}>GitHub</Button>
-                            {work.downloadUrl && <Button component="a" href={work.downloadUrl} target="_blank" rel="noreferrer" variant="outlined" size="small" startIcon={<Download size={16} />}>下载安装</Button>}
-                            {work.demo && <Button component="a" href={work.demo} target="_blank" rel="noreferrer" variant="contained" size="small" endIcon={<ExternalLink size={16} />}>在线 Demo</Button>}
+                            {work.downloadUrl ? <Button component="a" href={work.downloadUrl} target="_blank" rel="noreferrer" variant="outlined" size="small" startIcon={<Download size={16} />}>下载安装</Button> : null}
+                            {work.demo ? <Button component="a" href={work.demo} target="_blank" rel="noreferrer" variant="contained" size="small" endIcon={<ExternalLink size={16} />}>在线 Demo</Button> : null}
                           </Stack>
                         </CardContent>
                       </Grid>
@@ -1589,38 +1988,12 @@ export default function App() {
       </AppBar>
 
       <Box className="page-glow" />
-      {unlocked ? <HeroScene /> : null}
-
-      <AnimatePresence>
-        {unlocked && activeIndex === portfolioSectionIndex && showPortfolioPoster && (
-          <motion.div className="poster-modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPortfolioPoster(false)}>
-            <motion.div
-              className="poster-modal-shell"
-              initial={{ opacity: 0, scale: 0.88, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 24 }}
-              transition={{ duration: 0.42, ease: "easeOut" }}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <Button className="poster-close" variant="outlined" onClick={() => setShowPortfolioPoster(false)} startIcon={<X size={16} />}>
-                关闭海报
-              </Button>
-              <Card className="glass-card portfolio-poster-card">
-                <img src={siteMeta.portfolioPoster} alt="作品矩阵总览海报" className="portfolio-poster-image" />
-                <CardContent>
-                  <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={1.5}>
-                    <Box>
-                      <Typography variant="h5">作品矩阵总览海报</Typography>
-                      <Typography color="text.secondary">点击空白处或关闭按钮后，进入作品矩阵详细浏览。</Typography>
-                    </Box>
-                    <Button href={siteMeta.portfolioPoster} target="_blank" rel="noreferrer" endIcon={<ExternalLink size={16} />}>查看大图</Button>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {unlocked ? (
+        <>
+          <HeroScene />
+          <DotGrid />
+        </>
+      ) : null}
 
       <AnimatePresence>
         {unlocked && showPosterGeneratingModal ? (
