@@ -1,0 +1,9 @@
+node_modules
+dist
+.vercel
+resume.pdf
+
+# local / dev / debugging artifacts (never commit)
+tmp/
+.workbuddy/
+.spec-workflow/
