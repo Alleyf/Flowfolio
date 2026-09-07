@@ -129,8 +129,6 @@ export const sectionMenus = [
 
 export const topStats = [
   { label: "方向", value: "Agent 应用研发" },
-  { label: "主栈", value: "Java / Spring / SpringAI" },
-  { label: "工程化", value: "云原生 / DevOps / K8s" },
 ];
 
 export const digitalIdentity = {
