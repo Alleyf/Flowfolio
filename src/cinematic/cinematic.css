@@ -2212,3 +2212,57 @@ ul {
 .ctf-combo .ctf-input {
   width: 100%;
 }
+
+/* ==================================================================
+   round-9 — icons across contact links / profile grid / writing /
+   project visit / bottom stats
+   ================================================================== */
+
+.ctl-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ctl-label svg {
+  opacity: 0.55;
+  transition: opacity 0.3s var(--ease), color 0.3s var(--ease);
+}
+.ct-link:hover .ctl-label svg {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.type-row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.type-row dt svg {
+  opacity: 0.5;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.wr-arrow {
+  display: inline-flex;
+  align-items: center;
+}
+.write-row:hover .wr-arrow svg {
+  color: var(--accent);
+}
+
+.proj-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.site-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.site-stats svg {
+  opacity: 0.6;
+  color: var(--accent);
+}

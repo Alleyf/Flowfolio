@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, ChevronDown, Building2 } from "lucide-react";
+import { Send, ChevronDown, Building2, Mail, Github, Rss, Phone } from "lucide-react";
 import { contactConfig, siteMeta } from "../../config/siteConfig";
 
 /* SCENE 08 / CONTACT — giant close, the particle entity returns behind.
    Full contact data + direct message form (mailto) + footer. */
 
 const LINKS = [
-  { label: "EMAIL", value: contactConfig.email, href: `mailto:${contactConfig.email}` },
-  { label: "GITHUB", value: "github.com/Alleyf", href: contactConfig.github },
-  { label: "BLOG", value: "alleyf.github.io", href: contactConfig.blog },
-  { label: "PHONE", value: contactConfig.phone, href: `tel:${contactConfig.phone}` },
+  { label: "EMAIL", value: contactConfig.email, href: `mailto:${contactConfig.email}`, icon: Mail },
+  { label: "GITHUB", value: "github.com/Alleyf", href: contactConfig.github, icon: Github },
+  { label: "BLOG", value: "alleyf.github.io", href: contactConfig.blog, icon: Rss },
+  { label: "PHONE", value: contactConfig.phone, href: `tel:${contactConfig.phone}`, icon: Phone },
 ];
 
 /* built-in company presets for the team combo box */
@@ -73,7 +73,9 @@ export default function ContactScene({ refCb }) {
                 target={l.href.startsWith("mailto") || l.href.startsWith("tel") ? undefined : "_blank"}
                 rel="noreferrer"
               >
-                <span className="ctl-label mono">{l.label}</span>
+                <span className="ctl-label mono">
+                  <l.icon size={12} aria-hidden="true" /> {l.label}
+                </span>
                 <span className="ctl-value">{l.value}</span>
                 <span className="ctl-arrow" aria-hidden="true">
                   →

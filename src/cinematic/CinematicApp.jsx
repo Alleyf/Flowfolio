@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Share2, X, Github, Rss, Mail } from "lucide-react";
+import { Share2, X, Github, Rss, Mail, Eye } from "lucide-react";
 import SceneCanvas from "./SceneCanvas";
 import Cursor from "./Cursor";
 import BootOverlay from "./sections/BootOverlay";
@@ -593,7 +593,7 @@ export default function CinematicApp() {
         )}
         <span className="bottom-right">
           <span className="site-stats">
-            PV {busuanziStats.pv} · UV {busuanziStats.uv}
+            <Eye size={11} aria-hidden="true" /> PV {busuanziStats.pv} · UV {busuanziStats.uv}
           </span>
           <span className="scroll-hint">
             SCROLL TO EXPLORE <i className="hint-wheel" aria-hidden="true" />

@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react";
 import { projectExperiences } from "../../config/siteConfig";
 
 /* SCENE 05 / PROJECTS — horizontal editorial track. The engine drives
@@ -36,7 +37,7 @@ export default function ProjectsScene({ refCb, trackRef, counterRef }) {
                   <p className="proj-stack mono">{p.stack.join("  ·  ")}</p>
                   {p.url && (
                     <a className="proj-link mono" href={p.url} target="_blank" rel="noreferrer" data-cursor="VISIT">
-                      VISIT <span aria-hidden="true">→</span>
+                      VISIT <ExternalLink size={12} aria-hidden="true" />
                     </a>
                   )}
                 </div>

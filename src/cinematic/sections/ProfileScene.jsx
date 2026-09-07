@@ -1,7 +1,10 @@
+import { MapPin, Mail, Rss } from "lucide-react";
 import { digitalIdentity, topStats, contactConfig, siteMeta } from "../../config/siteConfig";
 
 /* SCENE 01 / PROFILE — typography-first hero. All identity data kept,
    presented as a typographic grid instead of cards. */
+
+const ROW_ICONS = { LOCATION: MapPin, 邮箱: Mail, 博客: Rss };
 
 export default function ProfileScene({ refCb }) {
   const rows = [
@@ -39,12 +42,17 @@ export default function ProfileScene({ refCb }) {
         </p>
 
         <dl className="type-grid rv" data-th="0.42">
-          {rows.map(([k, v]) => (
-            <div className="type-row" key={k + v}>
-              <dt className="mono">{k}</dt>
-              <dd>{v}</dd>
-            </div>
-          ))}
+          {rows.map(([k, v]) => {
+            const Icon = ROW_ICONS[k];
+            return (
+              <div className="type-row" key={k + v}>
+                <dt className="mono">
+                  {Icon && <Icon size={11} aria-hidden="true" />} {k}
+                </dt>
+                <dd>{v}</dd>
+              </div>
+            );
+          })}
         </dl>
 
         <div className="hero-status rv" data-th="0.6">

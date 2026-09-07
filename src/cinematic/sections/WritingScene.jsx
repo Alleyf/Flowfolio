@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import { blogPosts } from "../../config/siteConfig";
 
 /* SCENE 07 / WRITING — editorial list with full post data:
@@ -34,7 +35,7 @@ export default function WritingScene({ refCb }) {
               </span>
               <span className="wr-tags mono">{b.tags.join(" / ")}</span>
               <span className="wr-arrow" aria-hidden="true">
-                →
+                <ArrowUpRight size={15} />
               </span>
             </a>
           ))}
