@@ -425,14 +425,27 @@ export default function CinematicApp() {
   }, [addProgress]);
 
   useEffect(() => {
+    /* is the event target inside an element that can actually scroll?
+       (scrollable dropdowns like .ctf-menu must keep native wheel scrolling) */
+    const insideScrollable = (target) => {
+      if (!(target instanceof Element)) return false;
+      if (target.closest("input, textarea, select, [contenteditable]")) return true;
+      let node = target;
+      while (node && node !== document.body) {
+        if (node instanceof HTMLElement) {
+          const cs = window.getComputedStyle(node);
+          const scrolls = /(auto|scroll)/.test(cs.overflowY);
+          if (scrolls && node.scrollHeight > node.clientHeight + 1) return true;
+        }
+        node = node.parentElement;
+      }
+      return false;
+    };
+
     const onWheel = (e) => {
       if (!bootedRef.current || inputBlocked()) return;
-      /* let the wheel behave natively inside form fields */
-      if (
-        e.target instanceof Element &&
-        e.target.closest("input, textarea, select, [contenteditable]")
-      )
-        return;
+      /* let the wheel behave natively inside form fields / scrollable dropdowns */
+      if (insideScrollable(e.target)) return;
       e.preventDefault();
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
       if (Math.abs(delta) < 2) return;
