@@ -427,6 +427,12 @@ export default function CinematicApp() {
   useEffect(() => {
     const onWheel = (e) => {
       if (!bootedRef.current || inputBlocked()) return;
+      /* let the wheel behave natively inside form fields */
+      if (
+        e.target instanceof Element &&
+        e.target.closest("input, textarea, select, [contenteditable]")
+      )
+        return;
       e.preventDefault();
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
       if (Math.abs(delta) < 2) return;
@@ -435,6 +441,12 @@ export default function CinematicApp() {
 
     const onKeyDown = (e) => {
       if (!bootedRef.current || inputBlocked()) return;
+      /* never hijack keys while typing in the contact form / any field */
+      if (
+        e.target instanceof Element &&
+        e.target.closest("input, textarea, select, [contenteditable]")
+      )
+        return;
       const k = e.key;
       if (k === "ArrowDown" || k === "PageDown" || k === " ") {
         e.preventDefault();
