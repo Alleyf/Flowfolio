@@ -8,3 +8,4 @@ tmp/
 .workbuddy/
 .spec-workflow/
 .playwright-cli/
+.git-broken/
