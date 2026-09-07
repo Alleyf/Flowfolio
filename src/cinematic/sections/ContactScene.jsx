@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Send, ChevronDown, Building2 } from "lucide-react";
 import { contactConfig, siteMeta } from "../../config/siteConfig";
 
 /* SCENE 08 / CONTACT — giant close, the particle entity returns behind.
@@ -12,9 +12,28 @@ const LINKS = [
   { label: "PHONE", value: contactConfig.phone, href: `tel:${contactConfig.phone}` },
 ];
 
+/* built-in company presets for the team combo box */
+const ORG_PRESETS = [
+  "字节跳动", "腾讯", "阿里巴巴", "华为", "美团", "京东",
+  "百度", "网易", "快手", "小红书", "拼多多", "哔哩哔哩",
+  "滴滴", "蚂蚁集团", "微软", "谷歌", "苹果", "OpenAI",
+];
+
 export default function ContactScene({ refCb }) {
   const [form, setForm] = useState({ name: "", from: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [orgMenu, setOrgMenu] = useState(false);
+  const comboRef = useRef(null);
+
+  /* close the org dropdown when clicking outside of it */
+  useEffect(() => {
+    if (!orgMenu) return undefined;
+    const onDocDown = (e) => {
+      if (comboRef.current && !comboRef.current.contains(e.target)) setOrgMenu(false);
+    };
+    document.addEventListener("pointerdown", onDocDown, { capture: true });
+    return () => document.removeEventListener("pointerdown", onDocDown, { capture: true });
+  }, [orgMenu]);
 
   const sendMessage = () => {
     const subject = encodeURIComponent(form.message ? `来自 ${form.name || "访客"} 的留言` : contactConfig.defaultSubject);
@@ -75,13 +94,48 @@ export default function ContactScene({ refCb }) {
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 aria-label="你的称呼"
               />
-              <input
-                className="ctf-input mono"
-                placeholder="公司 / 团队（可选）"
-                value={form.from}
-                onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))}
-                aria-label="公司或团队"
-              />
+              <div className="ctf-combo" ref={comboRef}>
+                <input
+                  className="ctf-input mono"
+                  placeholder="公司 / 团队（可选）"
+                  value={form.from}
+                  onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))}
+                  onFocus={() => setOrgMenu(true)}
+                  aria-label="公司或团队，可直接输入或从列表选择"
+                />
+                <button
+                  type="button"
+                  className="ctf-caret"
+                  aria-label="展开公司列表"
+                  data-no-drag
+                  onClick={() => setOrgMenu((v) => !v)}
+                >
+                  <ChevronDown size={13} />
+                </button>
+                {orgMenu && (
+                  <div className="ctf-menu mono" role="listbox">
+                    <div className="ctf-menu-head">
+                      <Building2 size={11} aria-hidden="true" /> 常见公司 / 直接输入自定义
+                    </div>
+                    {ORG_PRESETS.map((org) => (
+                      <button
+                        key={org}
+                        type="button"
+                        role="option"
+                        aria-selected={form.from === org}
+                        className={form.from === org ? "ctf-opt on" : "ctf-opt"}
+                        data-no-drag
+                        onClick={() => {
+                          setForm((f) => ({ ...f, from: org }));
+                          setOrgMenu(false);
+                        }}
+                      >
+                        {org}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <textarea
               className="ctf-area mono"

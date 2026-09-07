@@ -2089,3 +2089,126 @@ ul {
   will-change: transform;
   transition: transform 0.18s ease-out;
 }
+
+/* ==================================================================
+   round-8 — top link icons + company combo box
+   ================================================================== */
+
+.top-links a,
+.top-links button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s var(--ease);
+}
+.top-links a svg,
+.top-links button svg {
+  opacity: 0.6;
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.top-links a:hover svg,
+.top-links button:hover svg {
+  opacity: 1;
+  transform: translateY(-1px);
+  color: var(--accent);
+}
+
+/* --- company / team combo: input + caret + preset dropdown --- */
+.ctf-combo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.ctf-combo .ctf-input {
+  margin-bottom: 10px;
+  padding-right: 34px;
+}
+.ctf-caret {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 30px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 1px solid rgba(242, 242, 238, 0.12);
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.ctf-caret:hover {
+  color: var(--accent);
+  background: rgba(216, 255, 62, 0.06);
+}
+.ctf-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% - 12px);
+  left: 0;
+  right: 0;
+  max-height: 210px;
+  overflow-y: auto;
+  background: rgba(8, 8, 8, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(242, 242, 238, 0.14);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+.ctf-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--fg-faint);
+  border-bottom: 1px solid rgba(242, 242, 238, 0.08);
+  position: sticky;
+  top: 0;
+  background: rgba(8, 8, 8, 0.95);
+}
+.ctf-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  transition: color 0.2s var(--ease), background 0.2s var(--ease), padding-left 0.2s var(--ease);
+}
+.ctf-opt:hover {
+  color: var(--fg);
+  background: rgba(216, 255, 62, 0.07);
+  padding-left: 16px;
+}
+.ctf-opt.on {
+  color: var(--accent);
+}
+.ctf-opt.on::after {
+  content: " ✓";
+}
+
+/* combo must share the row fairly — width:100% basis on the sibling
+   input otherwise collapses the flex item to ~2px */
+.ctf-row .ctf-input,
+.ctf-row .ctf-combo {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+.ctf-combo .ctf-input {
+  width: 100%;
+}
+
+/* combo must share the row fairly — width:100% basis on the sibling
+   input otherwise collapses the flex item to ~2px */
+.ctf-row .ctf-input,
+.ctf-row .ctf-combo {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+.ctf-combo .ctf-input {
+  width: 100%;
+}

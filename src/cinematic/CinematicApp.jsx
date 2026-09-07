@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Share2, X } from "lucide-react";
+import { Share2, X, Github, Rss, Mail } from "lucide-react";
 import SceneCanvas from "./SceneCanvas";
 import Cursor from "./Cursor";
 import BootOverlay from "./sections/BootOverlay";
@@ -543,13 +543,13 @@ export default function CinematicApp() {
         </button>
         <nav className="top-links mono">
           <a href={contactConfig.github} target="_blank" rel="noreferrer">
-            GITHUB
+            <Github size={13} aria-hidden="true" /> GITHUB
           </a>
           <a href={contactConfig.blog} target="_blank" rel="noreferrer">
-            BLOG
+            <Rss size={13} aria-hidden="true" /> BLOG
           </a>
           <button type="button" onClick={() => goToScene(7)}>
-            CONTACT
+            <Mail size={13} aria-hidden="true" /> CONTACT
           </button>
         </nav>
       </header>
