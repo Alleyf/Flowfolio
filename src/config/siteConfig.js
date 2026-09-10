@@ -294,6 +294,20 @@ export const portfolioWorks = [
     stack: ["React", "TypeScript", "Vite", "Remotion"],
   },
   {
+    title: "CodexSkinHub",
+    subtitle: "Codex 桌面端主题管理器",
+    kind: "CLI 工具",
+    repo: "https://github.com/Alleyf/CodexSkinHub",
+    image: "./doc/CodexSkinHub.webp",
+    summary: "给 codexhost 启动的 Codex 一套可独立分发的主题管理能力：主题热切换、ZIP 导入、主题库与应用内设置面板。",
+    highlights: [
+      "非侵入式设计：运行时锚点补丁，不改 Dream Skin 与 codexhost 源码，锚点漂移拒绝写入。",
+      "CDP 注入实现主题热切换，所有运行中的 Codex 窗口即时生效、无需重启。",
+      "四层自愈：npm 升级覆盖补丁后自动恢复；应用内 Dream Skin 设置面板 + doctor 体检。",
+    ],
+    stack: ["Node.js", "CDP", "PowerShell", "npm"],
+  },
+  {
     title: "MindScape",
     subtitle: "AI-Native 知识星图工作室",
     kind: "Web App",
