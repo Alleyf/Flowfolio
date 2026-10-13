@@ -9,7 +9,7 @@ import {
 } from "../artData";
 
 /* SCENE 06 / WORK MATRIX — two modes, like the original site:
-   · works — horizontal filmstrip of all 9 works on scroll progress
+   · works — horizontal filmstrip of all works on scroll progress
    · art   — Art Matrix: the same horizontal grammar, one photo per
      frame; wheel/swipe turns the strip, boundaries hand back to the
      engine so scrolling on keeps you travelling between scenes.

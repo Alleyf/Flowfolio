@@ -279,6 +279,21 @@ export const projectExperiences = [
 
 export const portfolioWorks = [
   {
+    title: "Torra",
+    subtitle: "多模型 AI 议事厅桌面客户端",
+    kind: "桌面应用",
+    repo: "https://github.com/Alleyf/Torra",
+    downloadUrl: "https://github.com/Alleyf/Torra/releases/tag/v0.2.1",
+    image: "./doc/Torra.webp",
+    summary: "你只提出议题，多个模型按轮次并行发言、点名回应，主持逐轮整理共识与分歧，结论可溯源到模型与轮次。",
+    highlights: [
+      "共识度由程序核算：三维加权，引用不存在的发言即拒绝小结。",
+      "分歧不被抹平、只增不减；插话/追问/对辩随时介入。",
+      "API 与网页双通道复用已有订阅，凭据只存本机不上传。",
+    ],
+    stack: ["Electron 33", "React 18", "TypeScript", "Zustand", "Vite"],
+  },
+  {
     title: "Md2Slide",
     subtitle: "Markdown 转幻灯片生成器",
     kind: "Web App",
